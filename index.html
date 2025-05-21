@@ -61,11 +61,13 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            min-height: 100vh; /* Fallback for older browsers */
+            min-height: 100dvh; /* Use dynamic viewport height */
             background-color: var(--theme-page-background);
             color: var(--theme-card-text-color);
             margin: 0;
             overflow-x: hidden;
+            overflow-y: hidden; /* Prevent body scrolling, app-container will handle its own if needed */
             transition: background-color 0.3s ease;
         }
 
@@ -75,10 +77,11 @@
             align-items: center;
             gap: 15px; 
             width: 100%;
-            max-width: 1200px; /* Allow scaling up */
-            padding: 15px 20px; /* Increased horizontal padding */
+            max-width: 1200px; 
+            padding: 15px 20px; 
             box-sizing: border-box;
-            min-height: 100vh; 
+            height: 100dvh; /* Make app container take full dynamic viewport height */
+            overflow-y: auto; /* Allow scrolling within app-container if content overflows */
             justify-content: space-between; 
         }
 
@@ -94,6 +97,7 @@
             width: 100%;
             max-width: 350px; 
             box-sizing: border-box;
+            flex-shrink: 0; /* Prevent settings from shrinking */
         }
         .settings label { flex-shrink: 0; font-size: 0.85em;}
         .settings select { flex-grow: 1; font-size: 0.85em;}
@@ -125,13 +129,15 @@
             position: relative;
             width: 100%; 
             /* Height for two cards + new gap + label space */
-            height: calc(var(--card-height) * 2 + var(--pile-gap) + 70px); 
+            /* Let flexbox determine height more, or set a flexible min-height */
+            min-height: calc(var(--card-height) * 2 + var(--pile-gap) + 70px); 
+            flex-grow: 1; /* Allow card area to take up available space */
             display: flex;
             flex-direction: column; 
             justify-content: center; 
             align-items: center; 
             perspective: 1000px;
-            margin: 10px 0;
+            margin: 5px 0; /* Reduced vertical margin */
         }
 
         .deck-pile,
@@ -148,6 +154,7 @@
             box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.15);
             position: relative; 
             z-index: 1; /* Ensure piles are behind cards */
+            flex-shrink: 0; /* Prevent piles from shrinking */
         }
         
         .deck-pile {
@@ -161,7 +168,7 @@
         .deck-pile::before { /* Label for Unseen Fates (Deck) */
             content: attr(data-pile-label);
             position: absolute;
-            top: -28px; /* MOVED: Position above the deck pile */
+            top: -28px; 
             width: 100%;
             text-align: center;
             font-family: 'Cinzel', serif;
@@ -173,7 +180,7 @@
         .discard-pile::before { /* Label for Revealed Paths (Discard) */
             content: attr(data-pile-label);
             position: absolute;
-            bottom: -28px; /* Stays below the discard pile */
+            bottom: -28px; 
             width: 100%;
             text-align: center;
             font-family: 'Cinzel', serif;
@@ -197,7 +204,6 @@
             top: 0;  
             will-change: transform;
             box-sizing: border-box;
-            /* Cards will get higher z-index via JS */
         }
 
         .card:hover {
@@ -274,8 +280,9 @@
             gap: 10px;
             width: 100%;
             justify-content: center;
-            padding-bottom: 5px;
-            margin-top: 10px; 
+            padding-bottom: 10px; /* Ensure some padding at the very bottom */
+            margin-top: 5px; /* Reduced margin */
+            flex-shrink: 0; /* Prevent controls from shrinking */
         }
 
         button {
@@ -689,27 +696,25 @@
             deckIndices.forEach((cardIndex, i) => {
                 const card = cardElements[cardIndex];
                 if (!card) return;
-                // Messier deck pile: primarily downward offset, with slight random x and rotation
                 const randomX = (Math.random() * STACK_OFFSET_X_JITTER) - (STACK_OFFSET_X_JITTER / 2);
                 const randomRot = (Math.random() * STACK_ROTATION_JITTER * 2) - STACK_ROTATION_JITTER;
 
                 gsap.to(card, {
                     x: deckX + randomX, 
-                    y: deckY + i * STACK_OFFSET_Y, // Main stacking is vertical
+                    y: deckY + i * STACK_OFFSET_Y, 
                     rotationY: 0, 
                     rotationZ: randomRot, 
                     zIndex: i + 2, 
-                    duration: animate ? ANIMATION_SPEED / 1.5 : 0, // Slower settle for shuffle
+                    duration: animate ? ANIMATION_SPEED / 1.5 : 0, 
                     ease: 'power2.out'
                 });
             });
 
-            // Discard pile remains somewhat neat but can also have slight jitter
             discardIndices.forEach((cardIndex, i) => {
                 const card = cardElements[cardIndex];
                 if (!card) return;
-                 const randomX = (Math.random() * (STACK_OFFSET_X_JITTER / 2)) - (STACK_OFFSET_X_JITTER / 4); // Less jitter for discard
-                 const randomRot = (Math.random() * (STACK_ROTATION_JITTER) ) - (STACK_ROTATION_JITTER / 2) ; // Less rotation
+                 const randomX = (Math.random() * (STACK_OFFSET_X_JITTER / 2)) - (STACK_OFFSET_X_JITTER / 4); 
+                 const randomRot = (Math.random() * (STACK_ROTATION_JITTER) ) - (STACK_ROTATION_JITTER / 2) ; 
 
                 gsap.to(card, {
                     x: discardX + randomX, 
@@ -755,7 +760,8 @@
             const areaRect = cardArea.getBoundingClientRect();
             const liftY = (deckRect.top - areaRect.top) - cardHeight * 0.3; 
 
-            const targetX = discardX + (discardIndices.length -1) * STACK_OFFSET_Y; // Use Y offset for vertical stack
+            // Target X for discard will use jitter, target Y will use stack offset
+            const targetX = discardX + ((Math.random() * (STACK_OFFSET_X_JITTER / 2)) - (STACK_OFFSET_X_JITTER / 4));
             const targetY = discardY + (discardIndices.length -1) * STACK_OFFSET_Y;
 
 
@@ -763,12 +769,9 @@
 
             const tl = gsap.timeline({
                 onComplete: () => {
-                    // Final position on discard pile with slight messiness
-                    const randomXDiscard = (Math.random() * (STACK_OFFSET_X_JITTER / 2)) - (STACK_OFFSET_X_JITTER / 4);
                     const randomRotDiscard = (Math.random() * (STACK_ROTATION_JITTER) ) - (STACK_ROTATION_JITTER / 2) ;
                     gsap.to(cardElement, { 
-                        x: discardX + randomXDiscard, // Apply final X position
-                        y: targetY, // Y already targeted
+                        // x, y are already set by the timeline's end
                         rotationZ: randomRotDiscard, 
                         zIndex: (discardIndices.length - 1) + 2, 
                         duration: 0.2, ease: 'power1.out'
@@ -785,7 +788,7 @@
                 rotationY: 180, duration: ANIMATION_SPEED / 1.7, ease: 'back.inOut(1.4)', 
             }, `-=${ANIMATION_SPEED / 4.5}`) 
             .to(cardElement, { 
-                x: discardX + ((Math.random() * (STACK_OFFSET_X_JITTER / 2)) - (STACK_OFFSET_X_JITTER / 4)), // Target X with jitter
+                x: targetX, 
                 y: targetY, 
                 duration: ANIMATION_SPEED / 2.2, ease: 'circ.in' 
             }, `-=${ANIMATION_SPEED / 3.2}`); 
@@ -816,20 +819,17 @@
             const areaRect = cardArea.getBoundingClientRect();
             const liftY = (deckRect.top - areaRect.top) - cardHeight * 0.3; 
 
-            const targetX = deckX + ((Math.random() * STACK_OFFSET_X_JITTER) - (STACK_OFFSET_X_JITTER / 2)); // Target X with jitter
-            const targetY = deckY + (deckIndices.length - 1) * STACK_OFFSET_Y; // Target Y based on stack
+            const targetX = deckX + ((Math.random() * STACK_OFFSET_X_JITTER) - (STACK_OFFSET_X_JITTER / 2)); 
+            const targetY = deckY + (deckIndices.length - 1) * STACK_OFFSET_Y; 
+            const targetRot = (Math.random() * STACK_ROTATION_JITTER * 2) - STACK_ROTATION_JITTER;
+
 
             gsap.set(cardElement, { zIndex: 200 + currentQuestions.length });
 
             const tl = gsap.timeline({
                 onComplete: () => {
-                    // Final position on deck pile with messiness
-                     const randomXDeck = (Math.random() * STACK_OFFSET_X_JITTER) - (STACK_OFFSET_X_JITTER / 2);
-                     const randomRotDeck = (Math.random() * STACK_ROTATION_JITTER * 2) - STACK_ROTATION_JITTER;
                     gsap.to(cardElement, { 
-                        x: deckX + randomXDeck, // Apply final X
-                        y: targetY, // Y already targeted
-                        rotationZ: randomRotDeck, 
+                        // x, y, rotationZ already set by timeline end
                         zIndex: (deckIndices.length - 1) + 2, 
                         duration: 0.2, ease: 'power1.out'
                     });
@@ -847,7 +847,7 @@
             .to(cardElement, {
                 x: targetX, 
                 y: targetY,
-                rotationZ: (Math.random() * STACK_ROTATION_JITTER * 2) - STACK_ROTATION_JITTER, // Add rotation on landing
+                rotationZ: targetRot, 
                 duration: ANIMATION_SPEED / 2.2, ease: 'circ.in'
             }, `-=${ANIMATION_SPEED / 3.2}`);
         }
@@ -873,13 +873,11 @@
 
             const tl = gsap.timeline({ 
                 onComplete: () => {
-                    // Use positionCards to settle them into the messy pile
-                    positionCards(true); 
+                    positionCards(true); // Use positionCards to settle them into the messy pile
                     updateButtonStates(); 
                 }
             });
 
-            // Scatter animation remains similar
             deckIndices.forEach((cardIndex, i) => {
                 const card = cardElements[cardIndex];
                 if (!card) return;
