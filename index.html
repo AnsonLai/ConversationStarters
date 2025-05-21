@@ -516,8 +516,8 @@
             document.documentElement.style.setProperty('--theme-select-arrow-color-svg-encoded', encodeURIComponent(arrowColor));
         }
 
-        const questionSets = { // Question sets remain the same
-            strangers: [ 
+        const questionSets = {
+            "strangers": [ 
                 "What hobby or interest lights you up that most people wouldn't guess about you?",
                 "What's the best book or show you've enjoyed recently?",
                 "Where do you feel most at home or at peace?",
@@ -527,9 +527,24 @@
                 "What's something you're curious about but haven't explored yet?",
                 "What's a skill you'd like to learn if you had the time?",
                 "How do you recharge after a busy day or week?",
-                "What's something you've changed your mind about in the last few years?"
+                "What's something you've changed your mind about in the last few years?",
+                "What's a tiny decision you made that unexpectedly changed your life?",
+                "What's a question you've never found a satisfying answer to?",
+                "What's something you find beautiful that others might overlook?",
+                "If your life had a theme song playing in the background, what would it be?",
+                "What's a small act of kindness from a stranger that you still remember?",
+                "What's something you're looking forward to that's getting you through this week?",
+                "What's a piece of wisdom you've gathered that you wish you'd learned sooner?",
+                "What part of your day do you most look forward to?",
+                "What's a story behind an object you carry with you?",
+                "What's a seemingly mundane job that you think would actually be fascinating?",
+                "What's something that made you laugh recently?",
+                "What's a question you'd ask someone from 100 years in the future?",
+                "What's something you know or believe that most people disagree with?",
+                "What's a meaningful coincidence you've experienced?",
+                "What's the most interesting thing you've learned in the past month?"
             ],
-            acquaintances: [ 
+            "acquaintances": [ 
                 "What's something you're genuinely proud of that you rarely get to talk about?",
                 "What activity do you enjoy and what makes it special to you?",
                 "What's a misconception people often have about your job or studies?",
@@ -539,9 +554,24 @@
                 "What's something you've recently discovered that you now love?",
                 "What tradition or habit brings structure to your life?",
                 "What's a question you wish people would ask you more often?",
-                "What's an interest you're currently exploring that you'd love to have some company with?"
+                "What's an interest you're currently exploring that you'd love to have some company with?",
+                "What's something you learned about yourself during a challenging time?",
+                "What's a seemingly insignificant memory that brings you unexpected joy?",
+                "What's a subject you know nothing about but find intriguing?",
+                "What's a hidden gem in this area that more people should appreciate?",
+                "What's something people are surprised to learn about you after knowing you a while?",
+                "What's an opinion you hold that's evolved significantly over time?",
+                "What's a creative project you'd start if you had unlimited resources?",
+                "What's a skill from your past that you'd like to revive or improve?",
+                "What's something you're still figuring out about yourself?",
+                "What's a conversation topic you find yourself returning to with different people?",
+                "What's a small change you've made that improved your daily life?",
+                "What's a documentary or podcast that changed your perspective on something?",
+                "What's a tradition you'd like to start or revive with people in your life?",
+                "What's a question that helps you really understand someone else?",
+                "What's something meaningful you've learned from someone younger than you?"
             ],
-            friends: [ 
+            "friends": [ 
                 "What's something difficult you're working through right now that you could use support with?",
                 "What's a belief you held strongly that you've since changed your mind about?",
                 "What aspect of your personality are you currently trying to improve?",
@@ -551,21 +581,51 @@
                 "Was there ever a time you wanted my help but hesitated to ask?",
                 "What part of your life feels most authentic to who you really are?",
                 "What do you need more of in your life right now?",
-                "What vulnerability is hardest for you to show others?"
+                "What vulnerability is hardest for you to show others?",
+                "What's an unspoken concern that's been lingering in your mind lately?",
+                "When have you felt most understood by someone in your life?",
+                "What's a failure you've experienced that ultimately led to growth?",
+                "What's something you're still healing from that most people don't see?",
+                "What's a compliment you've received that actually meant something deep to you?",
+                "What's a boundary you've needed to set that was difficult but necessary?",
+                "What's something about our friendship that you especially value?",
+                "What's a conversation we've never had that might deepen our connection?",
+                "What's something I might not realize you need from me as a friend?",
+                "What's a challenge you're facing that you haven't shared with many people?",
+                "What's a memory between us that you treasure that I might not know meant so much?",
+                "What's something you're quietly celebrating that deserves recognition?",
+                "What's a question you've been asking yourself lately about your life direction?",
+                "What's something from your past that still influences your decisions today?",
+                "What's a fear you're trying to face right now?"
             ],
-            date_night: [ 
-                "What was your first impression of me, and how has it changed?",
-                "What's something you find attractive that most people wouldn't think to mention?",
-                "What's a perfect day for you that we could actually make happen?",
-                "What makes you feel truly appreciated in a relationship?",
-                "What's something playful or adventurous you'd like us to try together?",
-                "What's a quality in me that you admire that I might not see in myself?",
-                "What's something surprising you've learned about me that you like?",
-                "If we could escape somewhere together this weekend, where would you choose?",
-                "What forms of affection make you feel most connected?",
-                "What conversation have you been wanting to have with me but haven't brought up yet?"
+            "date_night": [ 
+                "What was your first impression when we met today?",
+                "What's something you find attractive in others that most people wouldn't think to mention?",
+                "What's an ideal first date activity you've always wanted to try?",
+                "What makes you feel comfortable when getting to know someone new?",
+                "What's something fun or playful you enjoy that we might do together sometime?",
+                "What's something about yourself that usually takes people a while to notice?",
+                "What's surprised you most about our conversation so far?",
+                "If we could go anywhere for a casual next date, where would you choose?",
+                "Can you describe the last time you got turned on in public?",
+                "What's something you're curious to know about me but haven't asked yet?",
+                "What moment from today/our first meeting stood out to you?",
+                "What's a small detail about me that you noticed but I might not realize?",
+                "What's something we seem to have in common that you didn't expect?",
+                "What do you look for in the early stages of dating that tells you it's worth pursuing?",
+                "What's a question you wish more people asked you when getting to know you?",
+                "What's a first impression people often have about you that isn't quite accurate?",
+                "What's been your most memorable first date experience (before ours, of course)?",
+                "What's a dating experience that taught you something important about yourself?",
+                "What's something you hope people see in you when they first get to know you?",
+                "What do you look like, and sound like, when a date is going well for you?",
+                "What's something from our conversation that you found yourself thinking about after the moment has passed?",
+                "What's a side of yourself you've shown me that you rarely show others?",
+                "What's something you're passionate about that you'd love to share with someone you're dating?",
+                "What's a dating 'rule' you think is overrated or doesn't work for you?",
+                "What's a simple activity you enjoy that we might share together sometime?"
             ],
-            lovers: [ 
+            "lovers": [ 
                 "What's something adventurous or exciting you'd like to try with me but haven't yet?",
                 "What small gesture of affection means the most to you that I might not realize?",
                 "When do you feel most connected to me beyond just physical moments?",
@@ -575,9 +635,24 @@
                 "What kind of touch makes you feel most cherished and desired?",
                 "What's something you've always wanted to experience together that we haven't discussed?",
                 "What memory of us makes you smile when you're alone?",
-                "What unspoken desire have you been hoping I might intuitively understand?"
+                "What unspoken desire have you been hoping I might intuitively understand?",
+                "What's a moment between us where time seemed to stand still?",
+                "What's something you'd like me to whisper in your ear when we're alone?",
+                "Do you prefer sending dirty texts or talking dirty in person?",
+                "What's a subtle shift in our relationship that profoundly impacted your feelings?",
+                "What's something I do that makes you feel deeply understood?",
+                "What's a look or expression of mine that communicates something powerful to you?",
+                "What's a fear about us that sometimes whispers in your quieter moments?",
+                "If we could role-play any scenario together, what would you choose?",
+                "What's a quality in me that you've come to appreciate more deeply over time?",
+                "What's a way we connect that feels unique to our relationship?",
+                "If we could try something new in the bedroom tonight, what would you want it to be?",
+                "What's a moment you knew we had something special worth protecting?",
+                "What words or phrases would you love to hear me say during our most passionate moments?",
+                "Does the idea of partner-swapping make you feel jealous, turned on, or both?",
+                "What's something sacred about our connection that you never want to lose?"
             ]
-        };
+        }
 
         const ANIMATION_SPEED = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--animation-speed')) || 0.6;
         const STACK_OFFSET_Y = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stack-offset-y'));
