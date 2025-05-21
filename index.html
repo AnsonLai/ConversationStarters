@@ -39,15 +39,26 @@
             --theme-select-arrow-color: var(--theme-primary-darker);
 
             /* Card Dimensions: Wider and less tall */
-            --card-width: 260px; 
-            --card-height: 190px; 
-            --card-border-radius: 8px; 
+            --card-width: 260px;
+            --card-height: 190px;
+            --card-border-radius: 8px;
             --animation-speed: 0.6;
-            --pile-gap: 40px; /* Vertical gap between pile DIVS */
-            --stack-offset-y: 2px; /* Controls vertical stacking distance */
-            --stack-offset-x-jitter: 6px; /* Max horizontal jitter for messiness */
-            --stack-rotation-jitter: 3deg; /* Max rotation jitter for messiness */
-
+            --pile-gap: 40px;
+            /* Vertical gap between pile DIVS */
+            --stack-offset-y: 2px;
+            /* Controls vertical stacking distance */
+            --stack-offset-x-jitter: 6px;
+            /* Max horizontal jitter for messiness */
+            --stack-rotation-jitter: 3deg;
+            /* Max rotation jitter for messiness */
+            --card-visible-thickness: 1px;
+            /* How much each card in a stack 'offsets' the next one vertically for visual stacking. Controls density. */
+            --stack-max-random-x-offset: 5px;
+            /* Max horizontal random shift from pile center (e.g., -5px to +5px). Was effectively STACK_OFFSET_X_JITTER. */
+            --stack-max-random-y-offset: 3px;
+            /* Max vertical random shift from a card's base stacked position (e.g., -3px to +3px). */
+            --stack-max-random-rotation: 2.5deg;
+            /* Max random rotation (e.g., -2.5deg to +2.5deg). Was effectively STACK_ROTATION_JITTER. */
 
             --theme-card-back-pattern-color: var(--theme-primary-darker);
             --theme-card-back-bg-color: var(--theme-card-background);
@@ -61,13 +72,16 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh; /* Fallback for older browsers */
-            min-height: 100dvh; /* Use dynamic viewport height */
+            min-height: 100vh;
+            /* Fallback for older browsers */
+            min-height: 100dvh;
+            /* Use dynamic viewport height */
             background-color: var(--theme-page-background);
             color: var(--theme-card-text-color);
             margin: 0;
             overflow-x: hidden;
-            overflow-y: hidden; /* Prevent body scrolling, app-container will handle its own if needed */
+            overflow-y: hidden;
+            /* Prevent body scrolling, app-container will handle its own if needed */
             transition: background-color 0.3s ease;
         }
 
@@ -75,14 +89,16 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px; 
+            gap: 15px;
             width: 100%;
-            max-width: 1200px; 
-            padding: 15px 20px; 
+            max-width: 1200px;
+            padding: 15px 20px;
             box-sizing: border-box;
-            height: 100dvh; /* Make app container take full dynamic viewport height */
-            overflow-y: auto; /* Allow scrolling within app-container if content overflows */
-            justify-content: space-between; 
+            height: 100dvh;
+            /* Make app container take full dynamic viewport height */
+            overflow-y: auto;
+            /* Allow scrolling within app-container if content overflows */
+            justify-content: space-between;
         }
 
         .settings {
@@ -95,12 +111,21 @@
             border-radius: 8px;
             border: 1px solid var(--theme-select-border-color);
             width: 100%;
-            max-width: 350px; 
+            max-width: 350px;
             box-sizing: border-box;
-            flex-shrink: 0; /* Prevent settings from shrinking */
+            flex-shrink: 0;
+            /* Prevent settings from shrinking */
         }
-        .settings label { flex-shrink: 0; font-size: 0.85em;}
-        .settings select { flex-grow: 1; font-size: 0.85em;}
+
+        .settings label {
+            flex-shrink: 0;
+            font-size: 0.85em;
+        }
+
+        .settings select {
+            flex-grow: 1;
+            font-size: 0.85em;
+        }
 
 
         .settings select {
@@ -127,17 +152,19 @@
 
         .card-area {
             position: relative;
-            width: 100%; 
+            width: 100%;
             /* Height for two cards + new gap + label space */
             /* Let flexbox determine height more, or set a flexible min-height */
-            min-height: calc(var(--card-height) * 2 + var(--pile-gap) + 70px); 
-            flex-grow: 1; /* Allow card area to take up available space */
+            min-height: calc(var(--card-height) * 2 + var(--pile-gap) + 70px);
+            flex-grow: 1;
+            /* Allow card area to take up available space */
             display: flex;
-            flex-direction: column; 
-            justify-content: center; 
-            align-items: center; 
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             perspective: 1000px;
-            margin: 5px 0; /* Reduced vertical margin */
+            margin: 5px 0;
+            /* Reduced vertical margin */
         }
 
         .deck-pile,
@@ -152,23 +179,27 @@
             font-size: 0.8em;
             color: var(--theme-primary-darker);
             box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.15);
-            position: relative; 
-            z-index: 1; /* Ensure piles are behind cards */
-            flex-shrink: 0; /* Prevent piles from shrinking */
+            position: relative;
+            z-index: 1;
+            /* Ensure piles are behind cards */
+            flex-shrink: 0;
+            /* Prevent piles from shrinking */
         }
-        
+
         .deck-pile {
             /* z-index is already 1, cards will have higher z-index */
         }
+
         .discard-pile {
-            margin-top: var(--pile-gap); 
+            margin-top: var(--pile-gap);
             /* z-index is already 1 */
         }
 
-        .deck-pile::before { /* Label for Unseen Fates (Deck) */
+        .deck-pile::before {
+            /* Label for Unseen Fates (Deck) */
             content: attr(data-pile-label);
             position: absolute;
-            top: -28px; 
+            top: -28px;
             width: 100%;
             text-align: center;
             font-family: 'Cinzel', serif;
@@ -177,10 +208,11 @@
             letter-spacing: 0.5px;
         }
 
-        .discard-pile::before { /* Label for Revealed Paths (Discard) */
+        .discard-pile::before {
+            /* Label for Revealed Paths (Discard) */
             content: attr(data-pile-label);
             position: absolute;
-            bottom: -28px; 
+            bottom: -28px;
             width: 100%;
             text-align: center;
             font-family: 'Cinzel', serif;
@@ -199,15 +231,15 @@
             transition: box-shadow 0.3s ease;
             border-radius: var(--card-border-radius);
             border: 1.5px solid var(--theme-card-border-color);
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1), 0 0 8px var(--theme-primary-shadow, rgba(0,0,0,0.02));
-            left: 0; 
-            top: 0;  
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1), 0 0 8px var(--theme-primary-shadow, rgba(0, 0, 0, 0.02));
+            left: 0;
+            top: 0;
             will-change: transform;
             box-sizing: border-box;
         }
 
         .card:hover {
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15), 0 0 15px var(--theme-primary-shadow-hover, rgba(0,0,0,0.05));
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15), 0 0 15px var(--theme-primary-shadow-hover, rgba(0, 0, 0, 0.05));
         }
 
         .card-face {
@@ -233,13 +265,13 @@
                 linear-gradient(225deg, var(--theme-card-back-pattern-color) 10%, transparent 10%),
                 linear-gradient(45deg, var(--theme-card-back-pattern-color) 10%, transparent 10%),
                 linear-gradient(315deg, var(--theme-card-back-pattern-color) 10%, var(--theme-card-back-bg-color) 10%);
-            background-size: 18px 18px; 
-            transform: translateZ(0.5px); 
+            background-size: 18px 18px;
+            transform: translateZ(0.5px);
         }
 
         .card-back::after {
             content: var(--theme-card-back-symbol);
-            font-size: 50px; 
+            font-size: 50px;
             color: var(--theme-card-back-symbol-color);
             opacity: 0.6;
             position: absolute;
@@ -250,9 +282,9 @@
             background-color: var(--theme-card-background);
             color: var(--theme-card-text-color);
             transform: rotateY(180deg) translateZ(0.5px);
-            padding: 15px; 
-            font-size: 0.9em; 
-            line-height: 1.4; 
+            padding: 15px;
+            font-size: 0.9em;
+            line-height: 1.4;
             display: flex;
             flex-direction: column;
         }
@@ -269,10 +301,15 @@
         }
 
         .card-front::before {
-            top: 6px; left: 6px; border-width: 1.5px 0 0 1.5px;
+            top: 6px;
+            left: 6px;
+            border-width: 1.5px 0 0 1.5px;
         }
+
         .card-front::after {
-            bottom: 6px; right: 6px; border-width: 0 1.5px 1.5px 0;
+            bottom: 6px;
+            right: 6px;
+            border-width: 0 1.5px 1.5px 0;
         }
 
         .controls {
@@ -280,15 +317,18 @@
             gap: 10px;
             width: 100%;
             justify-content: center;
-            padding-bottom: 10px; /* Ensure some padding at the very bottom */
-            margin-top: 5px; /* Reduced margin */
-            flex-shrink: 0; /* Prevent controls from shrinking */
+            padding-bottom: 10px;
+            /* Ensure some padding at the very bottom */
+            margin-top: 5px;
+            /* Reduced margin */
+            flex-shrink: 0;
+            /* Prevent controls from shrinking */
         }
 
         button {
-            padding: 10px 20px; 
+            padding: 10px 20px;
             font-family: 'Cinzel', serif;
-            font-size: 0.9em; 
+            font-size: 0.9em;
             letter-spacing: 0.8px;
             cursor: pointer;
             border: 1.5px solid var(--theme-button-border-color);
@@ -302,13 +342,13 @@
         button:hover:not(:disabled) {
             background-color: var(--theme-button-hover-background);
             color: var(--theme-button-hover-text-color);
-            box-shadow: 0 2.5px 5px rgba(0,0,0,0.15), 0 0 6px var(--theme-button-hover-background);
+            box-shadow: 0 2.5px 5px rgba(0, 0, 0, 0.15), 0 0 6px var(--theme-button-hover-background);
             transform: translateY(-1px);
         }
 
         button:active:not(:disabled) {
             transform: translateY(0px);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         button:disabled {
@@ -327,7 +367,7 @@
         <div class="settings">
             <label for="question-set-select">Choose Arcana:</label>
             <select id="question-set-select">
-                <option value="strangers">Encounters (Strangers)</option> 
+                <option value="strangers">Encounters (Strangers)</option>
                 <option value="acquaintances">Whispers (Acquaintances)</option>
                 <option value="friends">Revelations (Friends)</option>
                 <option value="date_night">Destiny (Date Night)</option>
@@ -336,7 +376,7 @@
         </div>
 
         <div class="card-area">
-            <div class="deck-pile" data-pile-label="Unseen Fates"></div> 
+            <div class="deck-pile" data-pile-label="Unseen Fates"></div>
             <div class="discard-pile" data-pile-label="Revealed Paths"></div>
         </div>
 
@@ -350,15 +390,15 @@
     <script>
         // --- Theme Definitions ---
         const themes = { // Theme definitions remain the same as previous version
-            strangers: { 
-                '--theme-primary': '#707B7C', 
-                '--theme-primary-darker': '#566573', 
-                '--theme-secondary': '#FDFEFE', 
-                '--theme-page-background': '#EAEDED', 
-                '--theme-card-background': '#FDFEFE', 
-                '--theme-card-text-color': '#2C3E50', 
-                '--theme-card-border-color': '#707B7C', 
-                '--theme-pile-border-color': '#99A3A4', 
+            strangers: {
+                '--theme-primary': '#707B7C',
+                '--theme-primary-darker': '#566573',
+                '--theme-secondary': '#FDFEFE',
+                '--theme-page-background': '#EAEDED',
+                '--theme-card-background': '#FDFEFE',
+                '--theme-card-text-color': '#2C3E50',
+                '--theme-card-border-color': '#707B7C',
+                '--theme-pile-border-color': '#99A3A4',
                 '--theme-pile-label-color': '#566573',
                 '--theme-button-background': '#566573',
                 '--theme-button-text-color': '#FDFEFE',
@@ -375,27 +415,27 @@
                 '--theme-select-arrow-color': '#566573',
                 '--theme-primary-shadow': 'rgba(112, 123, 124, 0.1)',
                 '--theme-primary-shadow-hover': 'rgba(112, 123, 124, 0.2)',
-                '--theme-card-back-pattern-color': '#A0A0A0', 
-                '--theme-card-back-bg-color': '#D0D0D0',    
-                '--theme-card-back-symbol': '"✧"',          
-                '--theme-card-back-symbol-color': '#606060', 
-                '--theme-card-back-symbol-shadow-color': '#333333', 
+                '--theme-card-back-pattern-color': '#A0A0A0',
+                '--theme-card-back-bg-color': '#D0D0D0',
+                '--theme-card-back-symbol': '"✧"',
+                '--theme-card-back-symbol-color': '#606060',
+                '--theme-card-back-symbol-shadow-color': '#333333',
             },
-            acquaintances: { 
-                '--theme-primary': '#5DADE2', 
-                '--theme-primary-darker': '#2E86C1', 
-                '--theme-secondary': '#FFFFFF', 
-                '--theme-page-background': '#F4F6F7', 
-                '--theme-card-background': '#FFFFFF', 
-                '--theme-card-text-color': '#1A5276', 
-                '--theme-card-border-color': '#2E86C1', 
-                '--theme-pile-border-color': '#2E86C1', 
+            acquaintances: {
+                '--theme-primary': '#5DADE2',
+                '--theme-primary-darker': '#2E86C1',
+                '--theme-secondary': '#FFFFFF',
+                '--theme-page-background': '#F4F6F7',
+                '--theme-card-background': '#FFFFFF',
+                '--theme-card-text-color': '#1A5276',
+                '--theme-card-border-color': '#2E86C1',
+                '--theme-pile-border-color': '#2E86C1',
                 '--theme-pile-label-color': '#2E86C1',
-                '--theme-button-background': '#2E86C1', 
-                '--theme-button-text-color': '#FFFFFF', 
-                '--theme-button-border-color': '#5DADE2', 
-                '--theme-button-hover-background': '#5DADE2', 
-                '--theme-button-hover-text-color': '#1A5276', 
+                '--theme-button-background': '#2E86C1',
+                '--theme-button-text-color': '#FFFFFF',
+                '--theme-button-border-color': '#5DADE2',
+                '--theme-button-hover-background': '#5DADE2',
+                '--theme-button-hover-text-color': '#1A5276',
                 '--theme-button-disabled-background': '#AAB7B8',
                 '--theme-button-disabled-text-color': '#E5E8E8',
                 '--theme-button-disabled-border-color': '#909A9C',
@@ -406,19 +446,19 @@
                 '--theme-select-arrow-color': '#1A5276',
                 '--theme-primary-shadow': 'rgba(46, 134, 193, 0.1)',
                 '--theme-primary-shadow-hover': 'rgba(46, 134, 193, 0.2)',
-                '--theme-card-back-pattern-color': '#2E86C1', 
-                '--theme-card-back-bg-color': '#FFFFFF',    
-                '--theme-card-back-symbol': '"✧"',          
-                '--theme-card-back-symbol-color': '#2E86C1', 
-                '--theme-card-back-symbol-shadow-color': '#1A5276', 
+                '--theme-card-back-pattern-color': '#2E86C1',
+                '--theme-card-back-bg-color': '#FFFFFF',
+                '--theme-card-back-symbol': '"✧"',
+                '--theme-card-back-symbol-color': '#2E86C1',
+                '--theme-card-back-symbol-shadow-color': '#1A5276',
             },
-            friends: { 
-                '--theme-primary': '#2ECC71', 
-                '--theme-primary-darker': '#27AE60', 
-                '--theme-secondary': '#FDFEFE', 
-                '--theme-page-background': '#E8F8F5', 
-                '--theme-card-background': '#FDFEFE', 
-                '--theme-card-text-color': '#1D8348', 
+            friends: {
+                '--theme-primary': '#2ECC71',
+                '--theme-primary-darker': '#27AE60',
+                '--theme-secondary': '#FDFEFE',
+                '--theme-page-background': '#E8F8F5',
+                '--theme-card-background': '#FDFEFE',
+                '--theme-card-text-color': '#1D8348',
                 '--theme-card-border-color': '#27AE60',
                 '--theme-pile-border-color': '#27AE60',
                 '--theme-pile-label-color': '#2ECC71',
@@ -437,13 +477,13 @@
                 '--theme-select-arrow-color': '#1D8348',
                 '--theme-primary-shadow': 'rgba(46, 204, 113, 0.15)',
                 '--theme-primary-shadow-hover': 'rgba(46, 204, 113, 0.25)',
-                '--theme-card-back-pattern-color': '#27AE60', 
-                '--theme-card-back-bg-color': '#FDFEFE',    
-                '--theme-card-back-symbol': '"✧"',          
-                '--theme-card-back-symbol-color': '#2ECC71', 
-                '--theme-card-back-symbol-shadow-color': '#1D8348', 
+                '--theme-card-back-pattern-color': '#27AE60',
+                '--theme-card-back-bg-color': '#FDFEFE',
+                '--theme-card-back-symbol': '"✧"',
+                '--theme-card-back-symbol-color': '#2ECC71',
+                '--theme-card-back-symbol-shadow-color': '#1D8348',
             },
-            date_night: { 
+            date_night: {
                 '--theme-primary': '#D4AF37',
                 '--theme-primary-darker': '#B8860B',
                 '--theme-secondary': '#121212',
@@ -468,13 +508,13 @@
                 '--theme-select-arrow-color': '#D4AF37',
                 '--theme-primary-shadow': 'rgba(212, 175, 55, 0.1)',
                 '--theme-primary-shadow-hover': 'rgba(212, 175, 55, 0.2)',
-                '--theme-card-back-pattern-color': 'var(--theme-primary)', 
-                '--theme-card-back-bg-color': 'var(--theme-card-background)',    
-                '--theme-card-back-symbol': '"✧"',          
-                '--theme-card-back-symbol-color': 'var(--theme-primary)', 
-                '--theme-card-back-symbol-shadow-color': 'var(--theme-primary-darker)', 
+                '--theme-card-back-pattern-color': 'var(--theme-primary)',
+                '--theme-card-back-bg-color': 'var(--theme-card-background)',
+                '--theme-card-back-symbol': '"✧"',
+                '--theme-card-back-symbol-color': 'var(--theme-primary)',
+                '--theme-card-back-symbol-shadow-color': 'var(--theme-primary-darker)',
             },
-            lovers: { 
+            lovers: {
                 '--theme-primary': '#E53E3E',
                 '--theme-primary-darker': '#C53030',
                 '--theme-secondary': '#121212',
@@ -499,25 +539,25 @@
                 '--theme-select-arrow-color': '#E53E3E',
                 '--theme-primary-shadow': 'rgba(229, 62, 62, 0.1)',
                 '--theme-primary-shadow-hover': 'rgba(229, 62, 62, 0.2)',
-                '--theme-card-back-pattern-color': 'var(--theme-primary-darker)', 
-                '--theme-card-back-bg-color': 'var(--theme-card-background)',    
-                '--theme-card-back-symbol': '"✧"',          
-                '--theme-card-back-symbol-color': 'var(--theme-primary)', 
-                '--theme-card-back-symbol-shadow-color': '#A52A2A', 
+                '--theme-card-back-pattern-color': 'var(--theme-primary-darker)',
+                '--theme-card-back-bg-color': 'var(--theme-card-background)',
+                '--theme-card-back-symbol': '"✧"',
+                '--theme-card-back-symbol-color': 'var(--theme-primary)',
+                '--theme-card-back-symbol-shadow-color': '#A52A2A',
             }
         };
 
         function applyTheme(themeName) {
-            const selectedTheme = themes[themeName] || themes.strangers; 
+            const selectedTheme = themes[themeName] || themes.strangers;
             for (const [key, value] of Object.entries(selectedTheme)) {
                 document.documentElement.style.setProperty(key, value);
             }
-            const arrowColor = selectedTheme['--theme-select-arrow-color'] || '#000000'; 
+            const arrowColor = selectedTheme['--theme-select-arrow-color'] || '#000000';
             document.documentElement.style.setProperty('--theme-select-arrow-color-svg-encoded', encodeURIComponent(arrowColor));
         }
 
         const questionSets = {
-            "strangers": [ 
+            "strangers": [
                 "What hobby or interest lights you up that most people wouldn't guess about you?",
                 "What's the best book or show you've enjoyed recently?",
                 "Where do you feel most at home or at peace?",
@@ -544,7 +584,7 @@
                 "What's a meaningful coincidence you've experienced?",
                 "What's the most interesting thing you've learned in the past month?"
             ],
-            "acquaintances": [ 
+            "acquaintances": [
                 "What's something you're genuinely proud of that you rarely get to talk about?",
                 "What activity do you enjoy and what makes it special to you?",
                 "What's a misconception people often have about your job or studies?",
@@ -571,7 +611,7 @@
                 "What's a question that helps you really understand someone else?",
                 "What's something meaningful you've learned from someone younger than you?"
             ],
-            "friends": [ 
+            "friends": [
                 "What's something difficult you're working through right now that you could use support with?",
                 "What's a belief you held strongly that you've since changed your mind about?",
                 "What aspect of your personality are you currently trying to improve?",
@@ -598,7 +638,7 @@
                 "What's something from your past that still influences your decisions today?",
                 "What's a fear you're trying to face right now?"
             ],
-            "date_night": [ 
+            "date_night": [
                 "What was your first impression when we met today?",
                 "What's something you find attractive in others that most people wouldn't think to mention?",
                 "What's an ideal first date activity you've always wanted to try?",
@@ -625,7 +665,7 @@
                 "What's a dating 'rule' you think is overrated or doesn't work for you?",
                 "What's a simple activity you enjoy that we might share together sometime?"
             ],
-            "lovers": [ 
+            "lovers": [
                 "What's something adventurous or exciting you'd like to try with me but haven't yet?",
                 "What small gesture of affection means the most to you that I might not realize?",
                 "When do you feel most connected to me beyond just physical moments?",
@@ -654,38 +694,45 @@
             ]
         }
 
-        const ANIMATION_SPEED = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--animation-speed')) || 0.6;
-        const STACK_OFFSET_Y = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stack-offset-y'));
-        const STACK_OFFSET_X_JITTER = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stack-offset-x-jitter'));
-        const STACK_ROTATION_JITTER = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stack-rotation-jitter'));
+        // const ANIMATION_SPEED = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--animation-speed')) || 0.6;
+        // const STACK_OFFSET_Y = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stack-offset-y'));
+        // const STACK_OFFSET_X_JITTER = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stack-offset-x-jitter'));
+        // const STACK_ROTATION_JITTER = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stack-rotation-jitter'));
+
+        const ANIMATION_SPEED = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--animation-speed').trim()) || 0.6;
+        const CARD_VISIBLE_THICKNESS = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--card-visible-thickness').trim());
+        const STACK_MAX_RANDOM_X_OFFSET = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stack-max-random-x-offset').trim());
+        const STACK_MAX_RANDOM_Y_OFFSET = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stack-max-random-y-offset').trim());
+        const STACK_MAX_RANDOM_ROTATION = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stack-max-random-rotation').trim());
+
 
         const LS_STATE_KEY = 'mysticConversationState_v6'; // Updated key
 
         const cardArea = document.querySelector('.card-area');
-        const deckPileEl = document.querySelector('.deck-pile'); 
-        const discardPileEl = document.querySelector('.discard-pile'); 
+        const deckPileEl = document.querySelector('.deck-pile');
+        const discardPileEl = document.querySelector('.discard-pile');
         const nextBtn = document.getElementById('next-btn');
         const prevBtn = document.getElementById('prev-btn');
         const shuffleBtn = document.getElementById('shuffle-btn');
         const questionSetSelect = document.getElementById('question-set-select');
 
-        let cardElements = []; 
-        let currentQuestions = []; 
-        let deckIndices = []; 
-        let discardIndices = []; 
-        let currentSetKey = 'strangers'; 
+        let cardElements = [];
+        let currentQuestions = [];
+        let deckIndices = [];
+        let discardIndices = [];
+        let currentSetKey = 'strangers';
 
         function loadState() {
-            let savedState = { selectedSet: 'strangers', discardState: {} }; 
+            let savedState = { selectedSet: 'strangers', discardState: {} };
             try {
                 const storedData = localStorage.getItem(LS_STATE_KEY);
                 if (storedData) {
                     const parsedData = JSON.parse(storedData);
                     if (parsedData && typeof parsedData.selectedSet === 'string' && typeof parsedData.discardState === 'object') {
-                        if (questionSets[parsedData.selectedSet]) { 
+                        if (questionSets[parsedData.selectedSet]) {
                             savedState.selectedSet = parsedData.selectedSet;
                         } else {
-                            savedState.selectedSet = 'strangers'; 
+                            savedState.selectedSet = 'strangers';
                         }
                         if (typeof parsedData.discardState === 'object' && parsedData.discardState !== null) {
                             for (const key in parsedData.discardState) {
@@ -703,13 +750,13 @@
         function saveState() {
             const stateToSave = { selectedSet: currentSetKey, discardState: {} };
             let fullDiscardState = {};
-            try { 
+            try {
                 const existingState = JSON.parse(localStorage.getItem(LS_STATE_KEY) || '{}');
                 if (existingState && typeof existingState.discardState === 'object' && existingState.discardState !== null) {
                     fullDiscardState = existingState.discardState;
                 }
             } catch (e) { /* Ignore */ }
-            fullDiscardState[currentSetKey] = [...discardIndices]; 
+            fullDiscardState[currentSetKey] = [...discardIndices];
             stateToSave.discardState = fullDiscardState;
             try {
                 localStorage.setItem(LS_STATE_KEY, JSON.stringify(stateToSave));
@@ -739,8 +786,8 @@
             card.appendChild(cardFront);
             return card;
         }
-        
-        function getPilePositions() { 
+
+        function getPilePositions() {
             if (!cardArea || !deckPileEl || !discardPileEl) {
                 return { deckX: 0, deckY: 0, discardX: 0, discardY: 0 };
             }
@@ -750,7 +797,7 @@
 
             const cardWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--card-width'));
 
-            const deckPileX = (areaRect.width / 2) - (cardWidth / 2); 
+            const deckPileX = (areaRect.width / 2) - (cardWidth / 2);
             const deckPileY = deckRect.top - areaRect.top;
 
             const discardPileX = (areaRect.width / 2) - (cardWidth / 2);
@@ -764,45 +811,66 @@
             };
         }
 
-        function positionCards(animate = false) { 
+        function positionCards(animate = false) {
             if (cardElements.length === 0) return;
             const { deckX, deckY, discardX, discardY } = getPilePositions();
-            
+
+            // --- Position Deck Cards ---
+            const numDeckCards = deckIndices.length;
+            const deckCenterIndexOffset = (numDeckCards - 1) / 2; // Offset to find the "center" card's logical position
+
             deckIndices.forEach((cardIndex, i) => {
                 const card = cardElements[cardIndex];
                 if (!card) return;
-                const randomX = (Math.random() * STACK_OFFSET_X_JITTER) - (STACK_OFFSET_X_JITTER / 2);
-                const randomRot = (Math.random() * STACK_ROTATION_JITTER * 2) - STACK_ROTATION_JITTER;
+
+                const randomX = (Math.random() * 2 - 1) * STACK_MAX_RANDOM_X_OFFSET;
+                const stackingYOffset = (i - deckCenterIndexOffset) * CARD_VISIBLE_THICKNESS;
+                const randomYJitter = (Math.random() * 2 - 1) * STACK_MAX_RANDOM_Y_OFFSET;
+                const finalY = deckY + stackingYOffset + randomYJitter;
+                const randomRot = (Math.random() * 2 - 1) * STACK_MAX_RANDOM_ROTATION;
 
                 gsap.to(card, {
-                    x: deckX + randomX, 
-                    y: deckY + i * STACK_OFFSET_Y, 
-                    rotationY: 0, 
-                    rotationZ: randomRot, 
-                    zIndex: i + 2, 
-                    duration: animate ? ANIMATION_SPEED / 1.5 : 0, 
+                    x: deckX + randomX,
+                    y: finalY,
+                    rotationY: 0,
+                    rotationZ: randomRot,
+                    zIndex: i + 2,
+                    duration: animate ? ANIMATION_SPEED / 1.5 : 0,
                     ease: 'power2.out'
                 });
             });
+
+            // --- Position Discard Cards ---
+            const numDiscardCards = discardIndices.length;
+            const discardCenterIndexOffset = (numDiscardCards - 1) / 2;
+
+            // Optional: Use slightly different/smaller jitter for discard pile if desired
+            const discardMaxRandomXOffset = STACK_MAX_RANDOM_X_OFFSET * 0.8; // e.g., 80% of deck's
+            const discardMaxRandomYOffset = STACK_MAX_RANDOM_Y_OFFSET * 0.8;
+            const discardMaxRandomRotation = STACK_MAX_RANDOM_ROTATION * 0.8;
+
 
             discardIndices.forEach((cardIndex, i) => {
                 const card = cardElements[cardIndex];
                 if (!card) return;
-                 const randomX = (Math.random() * (STACK_OFFSET_X_JITTER / 2)) - (STACK_OFFSET_X_JITTER / 4); 
-                 const randomRot = (Math.random() * (STACK_ROTATION_JITTER) ) - (STACK_ROTATION_JITTER / 2) ; 
+
+                const randomX = (Math.random() * 2 - 1) * discardMaxRandomXOffset;
+                const stackingYOffset = (i - discardCenterIndexOffset) * CARD_VISIBLE_THICKNESS;
+                const randomYJitter = (Math.random() * 2 - 1) * discardMaxRandomYOffset;
+                const finalY = discardY + stackingYOffset + randomYJitter;
+                const randomRot = (Math.random() * 2 - 1) * discardMaxRandomRotation;
 
                 gsap.to(card, {
-                    x: discardX + randomX, 
-                    y: discardY + i * STACK_OFFSET_Y,
-                    rotationY: 180, 
-                    rotationZ: randomRot, 
-                    zIndex: i + 2, 
-                    duration: animate ? ANIMATION_SPEED / 2 : 0, 
+                    x: discardX + randomX,
+                    y: finalY,
+                    rotationY: 180,
+                    rotationZ: randomRot,
+                    zIndex: i + 2,
+                    duration: animate ? ANIMATION_SPEED / 2 : 0,
                     ease: 'power2.out'
                 });
             });
         }
-
         function updateButtonStates() {
             nextBtn.disabled = deckIndices.length === 0;
             prevBtn.disabled = discardIndices.length === 0;
@@ -811,67 +879,81 @@
 
         function flipNextCard() {
             if (deckIndices.length === 0 || !cardElements.length) return;
-            nextBtn.disabled = true; 
-            prevBtn.disabled = true; 
+            nextBtn.disabled = true;
+            prevBtn.disabled = true;
             shuffleBtn.disabled = true;
 
-            const cardIndexToFlip = deckIndices.pop(); 
+            const cardIndexToFlip = deckIndices.pop();
             const cardElement = cardElements[cardIndexToFlip];
-            
+
             if (!cardElement) {
                 updateButtonStates(); return;
             }
-            gsap.killTweensOf(cardElement); 
+            gsap.killTweensOf(cardElement);
 
-            discardIndices.push(cardIndexToFlip); 
-            saveState(); 
+            discardIndices.push(cardIndexToFlip);
+            saveState();
 
-            const { discardX, discardY } = getPilePositions();
+            const { discardX, discardY } = getPilePositions(); // deckY here is not used for target
             const cardWidth = cardElement.offsetWidth;
             const cardHeight = cardElement.offsetHeight;
-            
+
             const liftX = (cardArea.offsetWidth / 2) - (cardWidth / 2);
-            const deckRect = deckPileEl.getBoundingClientRect();
-            const areaRect = cardArea.getBoundingClientRect();
-            const liftY = (deckRect.top - areaRect.top) - cardHeight * 0.3; 
+            const deckPileRect = deckPileEl.getBoundingClientRect(); // Source pile for lift reference
+            const cardAreaRect = cardArea.getBoundingClientRect();
+            const liftY = (deckPileRect.top - cardAreaRect.top) - cardHeight * 0.3; // Lift from deck position
 
-            // Target X for discard will use jitter, target Y will use stack offset
-            const targetX = discardX + ((Math.random() * (STACK_OFFSET_X_JITTER / 2)) - (STACK_OFFSET_X_JITTER / 4));
-            const targetY = discardY + (discardIndices.length -1) * STACK_OFFSET_Y;
+            // --- Calculate target position on discard pile using new centered logic ---
+            const numDiscardCards = discardIndices.length;
+            const newCardStackIndexInDiscard = numDiscardCards - 1;
+            const discardCenterIndexOffset = (numDiscardCards - 1) / 2;
 
+            // Optional: Use slightly different/smaller jitter for discard pile if desired (consistent with positionCards)
+            const discardTargetMaxRandomXOffset = STACK_MAX_RANDOM_X_OFFSET * 0.8;
+            const discardTargetMaxRandomYOffset = STACK_MAX_RANDOM_Y_OFFSET * 0.8;
+            const discardTargetMaxRandomRotation = STACK_MAX_RANDOM_ROTATION * 0.8;
 
-            gsap.set(cardElement, { zIndex: 200 + currentQuestions.length }); 
+            const targetStackingYOffset = (newCardStackIndexInDiscard - discardCenterIndexOffset) * CARD_VISIBLE_THICKNESS;
+            const targetRandomYJitter = (Math.random() * 2 - 1) * discardTargetMaxRandomYOffset;
+            const targetY = discardY + targetStackingYOffset + targetRandomYJitter;
+
+            const targetRandomX = (Math.random() * 2 - 1) * discardTargetMaxRandomXOffset;
+            const targetX = discardX + targetRandomX;
+
+            const targetRotationZ = (Math.random() * 2 - 1) * discardTargetMaxRandomRotation;
+            // --- End target calculation ---
+
+            gsap.set(cardElement, { zIndex: 200 + currentQuestions.length });
 
             const tl = gsap.timeline({
                 onComplete: () => {
-                    const randomRotDiscard = (Math.random() * (STACK_ROTATION_JITTER) ) - (STACK_ROTATION_JITTER / 2) ;
-                    gsap.to(cardElement, { 
-                        // x, y are already set by the timeline's end
-                        rotationZ: randomRotDiscard, 
-                        zIndex: (discardIndices.length - 1) + 2, 
+                    gsap.to(cardElement, { // Final settle, ensure rotation matches calculated target
+                        rotationZ: targetRotationZ, // Apply the pre-calculated rotation
+                        zIndex: newCardStackIndexInDiscard + 2,
                         duration: 0.2, ease: 'power1.out'
                     });
-                    updateButtonStates(); 
+                    updateButtonStates();
                 }
             });
 
-            tl.to(cardElement, { 
-                x: liftX, y: liftY, rotationZ: 0, 
-                duration: ANIMATION_SPEED / 2.2, ease: 'circ.out' 
+            tl.to(cardElement, {
+                x: liftX, y: liftY, rotationZ: 0, // Start with no Z rotation during lift
+                duration: ANIMATION_SPEED / 2.2, ease: 'circ.out'
             })
-            .to(cardElement, { 
-                rotationY: 180, duration: ANIMATION_SPEED / 1.7, ease: 'back.inOut(1.4)', 
-            }, `-=${ANIMATION_SPEED / 4.5}`) 
-            .to(cardElement, { 
-                x: targetX, 
-                y: targetY, 
-                duration: ANIMATION_SPEED / 2.2, ease: 'circ.in' 
-            }, `-=${ANIMATION_SPEED / 3.2}`); 
+                .to(cardElement, {
+                    rotationY: 180, duration: ANIMATION_SPEED / 1.7, ease: 'back.inOut(1.4)',
+                }, `-=${ANIMATION_SPEED / 4.5}`)
+                .to(cardElement, {
+                    x: targetX,
+                    y: targetY,
+                    // rotationZ will be applied in onComplete for the final "settle" to match random target
+                    duration: ANIMATION_SPEED / 2.2, ease: 'circ.in'
+                }, `-=${ANIMATION_SPEED / 3.2}`);
         }
 
         function flipPreviousCard() {
             if (discardIndices.length === 0 || !cardElements.length) return;
-            prevBtn.disabled = true; 
+            prevBtn.disabled = true;
             nextBtn.disabled = true;
             shuffleBtn.disabled = true;
 
@@ -881,55 +963,66 @@
             if (!cardElement) {
                 updateButtonStates(); return;
             }
-            gsap.killTweensOf(cardElement); 
+            gsap.killTweensOf(cardElement);
 
-            deckIndices.push(cardIndexToReturn); 
-            saveState(); 
+            deckIndices.push(cardIndexToReturn);
+            saveState();
 
-            const { deckX, deckY } = getPilePositions();
+            const { deckX, deckY } = getPilePositions(); // discardY here is not used for target
             const cardWidth = cardElement.offsetWidth;
             const cardHeight = cardElement.offsetHeight;
+
             const liftX = (cardArea.offsetWidth / 2) - (cardWidth / 2);
-            const deckRect = deckPileEl.getBoundingClientRect();
-            const areaRect = cardArea.getBoundingClientRect();
-            const liftY = (deckRect.top - areaRect.top) - cardHeight * 0.3; 
+            const discardPileRect = discardPileEl.getBoundingClientRect(); // Source pile for lift reference
+            const cardAreaRect = cardArea.getBoundingClientRect();
+            const liftY = (discardPileRect.top - cardAreaRect.top) - cardHeight * 0.3; // Lift from discard position
 
-            const targetX = deckX + ((Math.random() * STACK_OFFSET_X_JITTER) - (STACK_OFFSET_X_JITTER / 2)); 
-            const targetY = deckY + (deckIndices.length - 1) * STACK_OFFSET_Y; 
-            const targetRot = (Math.random() * STACK_ROTATION_JITTER * 2) - STACK_ROTATION_JITTER;
+            // --- Calculate target position on deck pile using new centered logic ---
+            const numDeckCards = deckIndices.length;
+            const newCardStackIndexInDeck = numDeckCards - 1;
+            const deckCenterIndexOffset = (numDeckCards - 1) / 2;
 
+            const targetStackingYOffset = (newCardStackIndexInDeck - deckCenterIndexOffset) * CARD_VISIBLE_THICKNESS;
+            const targetRandomYJitter = (Math.random() * 2 - 1) * STACK_MAX_RANDOM_Y_OFFSET;
+            const targetY = deckY + targetStackingYOffset + targetRandomYJitter;
+
+            const targetRandomX = (Math.random() * 2 - 1) * STACK_MAX_RANDOM_X_OFFSET;
+            const targetX = deckX + targetRandomX;
+
+            const targetRotationZ = (Math.random() * 2 - 1) * STACK_MAX_RANDOM_ROTATION;
+            // --- End target calculation ---
 
             gsap.set(cardElement, { zIndex: 200 + currentQuestions.length });
 
             const tl = gsap.timeline({
                 onComplete: () => {
-                    gsap.to(cardElement, { 
-                        // x, y, rotationZ already set by timeline end
-                        zIndex: (deckIndices.length - 1) + 2, 
+                    gsap.to(cardElement, { // Final settle
+                        // x, y, rotationZ already set by timeline end using targetRotationZ
+                        zIndex: newCardStackIndexInDeck + 2,
                         duration: 0.2, ease: 'power1.out'
                     });
-                    updateButtonStates(); 
+                    updateButtonStates();
                 }
             });
-            
+
             tl.to(cardElement, {
-                x: liftX, y: liftY, rotationZ: 0,
+                x: liftX, y: liftY, rotationZ: 0, // Start with no Z rotation during lift
                 duration: ANIMATION_SPEED / 2.2, ease: 'circ.out'
             })
-            .to(cardElement, {
-                rotationY: 0, duration: ANIMATION_SPEED / 1.7, ease: 'back.inOut(1.4)',
-            }, `-=${ANIMATION_SPEED / 4.5}`)
-            .to(cardElement, {
-                x: targetX, 
-                y: targetY,
-                rotationZ: targetRot, 
-                duration: ANIMATION_SPEED / 2.2, ease: 'circ.in'
-            }, `-=${ANIMATION_SPEED / 3.2}`);
+                .to(cardElement, {
+                    rotationY: 0, duration: ANIMATION_SPEED / 1.7, ease: 'back.inOut(1.4)',
+                }, `-=${ANIMATION_SPEED / 4.5}`)
+                .to(cardElement, {
+                    x: targetX,
+                    y: targetY,
+                    rotationZ: targetRotationZ, // Apply the Z rotation as it moves to the pile
+                    duration: ANIMATION_SPEED / 2.2, ease: 'circ.in'
+                }, `-=${ANIMATION_SPEED / 3.2}`);
         }
-        
+
         function shuffleRemainingDeck() {
             if (deckIndices.length <= 1) return;
-            shuffleBtn.disabled = true; 
+            shuffleBtn.disabled = true;
             nextBtn.disabled = true;
             prevBtn.disabled = true;
 
@@ -937,73 +1030,73 @@
                 const card = cardElements[cardIndex];
                 if (card) gsap.killTweensOf(card);
             });
-            
-            shuffleArray(deckIndices); 
-            
-            if (!deckPileEl || !cardArea || cardElements.length === 0) { 
-                updateButtonStates(); return; 
+
+            shuffleArray(deckIndices);
+
+            if (!deckPileEl || !cardArea || cardElements.length === 0) {
+                updateButtonStates(); return;
             }
-            
+
             const { deckX, deckY } = getPilePositions();
 
-            const tl = gsap.timeline({ 
+            const tl = gsap.timeline({
                 onComplete: () => {
                     positionCards(true); // Use positionCards to settle them into the messy pile
-                    updateButtonStates(); 
+                    updateButtonStates();
                 }
             });
 
             deckIndices.forEach((cardIndex, i) => {
                 const card = cardElements[cardIndex];
                 if (!card) return;
-                tl.to(card, { 
-                    x: deckX + (Math.random() * 70 - 35), 
-                    y: deckY - card.offsetHeight * 0.25 + (Math.random() * 50 - 25), 
-                    rotationZ: Math.random() * 40 - 20, 
-                    zIndex: 100 + i, 
+                tl.to(card, {
+                    x: deckX + (Math.random() * 70 - 35),
+                    y: deckY - card.offsetHeight * 0.25 + (Math.random() * 50 - 25),
+                    rotationZ: Math.random() * 40 - 20,
+                    zIndex: 100 + i,
                     duration: ANIMATION_SPEED / 2.2, ease: 'circ.out'
-                }, i * 0.018); 
+                }, i * 0.018);
             });
         }
 
         function initialize(targetSetKey, initialDiscardStateForSets) {
-            currentSetKey = targetSetKey; 
-            applyTheme(currentSetKey); 
+            currentSetKey = targetSetKey;
+            applyTheme(currentSetKey);
             currentQuestions = questionSets[currentSetKey] || [];
 
             cardArea.querySelectorAll('.card').forEach(card => {
-                gsap.killTweensOf(card); 
+                gsap.killTweensOf(card);
                 card.remove();
             });
             cardElements = [];
 
             const savedDiscardForThisSet = (initialDiscardStateForSets[currentSetKey] || []).filter(idx => Number.isInteger(idx) && idx >= 0 && idx < currentQuestions.length);
-            discardIndices = [...new Set(savedDiscardForThisSet)]; 
+            discardIndices = [...new Set(savedDiscardForThisSet)];
 
             const allPossibleIndices = currentQuestions.map((_, i) => i);
             deckIndices = allPossibleIndices.filter(index => !discardIndices.includes(index));
-            
-            currentQuestions.forEach((q, index) => { 
+
+            currentQuestions.forEach((q, index) => {
                 const cardElement = createCardElement(q, index);
-                cardArea.appendChild(cardElement); 
+                cardArea.appendChild(cardElement);
                 cardElements.push(cardElement);
             });
 
-            shuffleArray(deckIndices); 
+            shuffleArray(deckIndices);
 
             requestAnimationFrame(() => {
-                 setTimeout(() => { 
-                    positionCards(false); 
+                setTimeout(() => {
+                    positionCards(false);
                     updateButtonStates();
-                }, 50); 
+                }, 50);
             });
         }
 
         questionSetSelect.addEventListener('change', (event) => {
             const selectedSetKey = event.target.value;
-            const allDiscardStates = loadState().discardState; 
-            initialize(selectedSetKey, allDiscardStates); 
-            saveState(); 
+            const allDiscardStates = loadState().discardState;
+            initialize(selectedSetKey, allDiscardStates);
+            saveState();
         });
 
         nextBtn.addEventListener('click', flipNextCard);
@@ -1012,22 +1105,22 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             const savedState = loadState();
-            let initialSetKey = savedState.selectedSet || 'strangers'; 
+            let initialSetKey = savedState.selectedSet || 'strangers';
             if (!themes[initialSetKey]) initialSetKey = 'strangers';
-            
-            questionSetSelect.value = initialSetKey; 
-            currentSetKey = initialSetKey; 
-            initialize(initialSetKey, savedState.discardState); 
+
+            questionSetSelect.value = initialSetKey;
+            currentSetKey = initialSetKey;
+            initialize(initialSetKey, savedState.discardState);
         });
-        
+
         let resizeTimer;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(() => {
                 if (cardElements.length > 0) {
-                    positionCards(false); 
+                    positionCards(false);
                 }
-            }, 150); 
+            }, 150);
         });
 
     </script>
