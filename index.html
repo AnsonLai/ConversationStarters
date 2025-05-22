@@ -75,8 +75,10 @@
         body {
             font-family: 'Lora', serif;
             display: flex;
-            align-items: flex-start; /* Align items to the top */
-            justify-content: flex-start; /* Explicitly align children to the start */
+            align-items: flex-start;
+            /* Align items to the top */
+            justify-content: flex-start;
+            /* Explicitly align children to the start */
             min-height: 100vh;
             /* Fallback for older browsers */
             min-height: 100dvh;
@@ -104,7 +106,8 @@
             overflow-y: auto;
             /* Allow scrolling within app-container if content overflows */
             justify-content: space-between;
-            flex-grow: 1; /* Allow app-container to take available space */
+            flex-grow: 1;
+            /* Allow app-container to take available space */
         }
 
         .ai-sidebar {
@@ -117,7 +120,8 @@
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            gap: 10px; /* Spacing between elements in the sidebar */
+            gap: 10px;
+            /* Spacing between elements in the sidebar */
         }
 
         .ai-sidebar h3 {
@@ -146,7 +150,8 @@
         }
 
         .ai-sidebar textarea {
-            resize: vertical; /* Allow vertical resize only */
+            resize: vertical;
+            /* Allow vertical resize only */
         }
 
         .ai-sidebar button {
@@ -172,8 +177,10 @@
             border-radius: 4px;
             min-height: 50px;
             font-size: 0.85em;
-            background-color: rgba(0,0,0,0.02); /* Subtle background */
-            white-space: pre-wrap; /* To respect newlines in generated text */
+            background-color: rgba(0, 0, 0, 0.02);
+            /* Subtle background */
+            white-space: pre-wrap;
+            /* To respect newlines in generated text */
         }
 
         .settings {
@@ -466,10 +473,19 @@
         <h3>Generate Custom Cards</h3>
         <label for="openai-api-key">OpenAI API Key:</label>
         <input type="password" id="openai-api-key" placeholder="Enter your API key">
-        <label for="card-specs">Card Specifications:</label>
-        <textarea id="card-specs" rows="5" placeholder="Describe the card you want to generate..."></textarea>
+
+        <label for="card-specs">Card Specifications/Theme:</label>
+        <textarea id="card-specs" rows="4"
+            placeholder="e.g., 'A question about childhood dreams' or 'Spicy questions for couples'"></textarea>
         <button id="generate-card-btn">Generate Card</button>
-        <div id="generated-cards-display"></div>
+
+        <div id="generated-cards-display" style="min-height: 60px; margin-bottom:10px;">
+            <!-- Generated card text will appear here -->
+        </div>
+
+        <label for="custom-set-name">New Set Name (or select custom set below):</label>
+        <input type="text" id="custom-set-name" placeholder="e.g., My Custom Questions">
+        <button id="add-generated-card-btn" disabled>Add Generated Card to Set</button>
     </div>
 
     <script>
@@ -633,7 +649,7 @@
         };
 
         function applyTheme(themeName) {
-            const selectedTheme = themes[themeName] || themes.strangers;
+            const selectedTheme = themes[themeName] || themes.strangers; // Fallback to strangers theme
             for (const [key, value] of Object.entries(selectedTheme)) {
                 document.documentElement.style.setProperty(key, value);
             }
@@ -641,7 +657,8 @@
             document.documentElement.style.setProperty('--theme-select-arrow-color-svg-encoded', encodeURIComponent(arrowColor));
         }
 
-        const questionSets = {
+        // Make questionSets a 'let' variable so it can be modified with custom sets
+        let questionSets = {
             "strangers": [
                 "What hobby or interest lights you up that most people wouldn't guess about you?",
                 "What's the best book or show you've enjoyed recently?",
@@ -777,12 +794,7 @@
                 "Does the idea of partner-swapping make you feel jealous, turned on, or both?",
                 "What's something sacred about our connection that you never want to lose?"
             ]
-        }
-
-        // const ANIMATION_SPEED = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--animation-speed')) || 0.6;
-        // const STACK_OFFSET_Y = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stack-offset-y'));
-        // const STACK_OFFSET_X_JITTER = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stack-offset-x-jitter'));
-        // const STACK_ROTATION_JITTER = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stack-rotation-jitter'));
+        };
 
         const ANIMATION_SPEED = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--animation-speed').trim()) || 0.6;
         const CARD_VISIBLE_THICKNESS = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--card-visible-thickness').trim());
@@ -790,8 +802,8 @@
         const STACK_MAX_RANDOM_Y_OFFSET = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stack-max-random-y-offset').trim());
         const STACK_MAX_RANDOM_ROTATION = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stack-max-random-rotation').trim());
 
-
-        const LS_STATE_KEY = 'mysticConversationState_v6'; // Updated key
+        const LS_STATE_KEY = 'mysticConversationState_v7'; // Incremented version for state structure changes
+        const LS_CUSTOM_SETS_KEY = 'mysticConversation_customSets_v1';
 
         const cardArea = document.querySelector('.card-area');
         const deckPileEl = document.querySelector('.deck-pile');
@@ -807,6 +819,55 @@
         let discardIndices = [];
         let currentSetKey = 'strangers';
 
+
+        // --- Custom Set Management ---
+        function addCustomSetToDropdown(setKey, setName) {
+            // Check if option already exists to prevent duplicates
+            if (questionSetSelect.querySelector(`option[value="${setKey}"]`)) {
+                return;
+            }
+            const option = document.createElement('option');
+            option.value = setKey;
+            option.textContent = `${setName} (Custom)`;
+            option.dataset.custom = "true";
+            questionSetSelect.appendChild(option);
+        }
+
+        function loadCustomSets() {
+            try {
+                const storedCustomSets = localStorage.getItem(LS_CUSTOM_SETS_KEY);
+                if (storedCustomSets) {
+                    const parsedCustomSets = JSON.parse(storedCustomSets);
+                    Object.assign(questionSets, parsedCustomSets); // Merge loaded custom sets
+
+                    for (const key in parsedCustomSets) {
+                        if (key.startsWith("custom_") && questionSets[key]) {
+                            let setName = key.substring(7).replace(/_/g, ' ');
+                            setName = setName.replace(/\b\w/g, l => l.toUpperCase());
+                            addCustomSetToDropdown(key, setName);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading custom sets:", e);
+            }
+        }
+
+        function saveCustomSets() {
+            const customSetsToSave = {};
+            for (const key in questionSets) {
+                if (key.startsWith("custom_")) {
+                    customSetsToSave[key] = questionSets[key];
+                }
+            }
+            try {
+                localStorage.setItem(LS_CUSTOM_SETS_KEY, JSON.stringify(customSetsToSave));
+            } catch (e) {
+                console.error("Error saving custom sets:", e);
+            }
+        }
+
+        // --- State Management ---
         function loadState() {
             let savedState = { selectedSet: 'strangers', discardState: {} };
             try {
@@ -814,9 +875,11 @@
                 if (storedData) {
                     const parsedData = JSON.parse(storedData);
                     if (parsedData && typeof parsedData.selectedSet === 'string' && typeof parsedData.discardState === 'object') {
+                        // Check if selectedSet exists in the (potentially augmented by custom sets) questionSets
                         if (questionSets[parsedData.selectedSet]) {
                             savedState.selectedSet = parsedData.selectedSet;
                         } else {
+                            // If saved set doesn't exist (e.g. custom set deleted elsewhere), fallback
                             savedState.selectedSet = 'strangers';
                         }
                         if (typeof parsedData.discardState === 'object' && parsedData.discardState !== null) {
@@ -836,18 +899,27 @@
             const stateToSave = { selectedSet: currentSetKey, discardState: {} };
             let fullDiscardState = {};
             try {
-                const existingState = JSON.parse(localStorage.getItem(LS_STATE_KEY) || '{}');
-                if (existingState && typeof existingState.discardState === 'object' && existingState.discardState !== null) {
-                    fullDiscardState = existingState.discardState;
+                const existingStateData = localStorage.getItem(LS_STATE_KEY);
+                if (existingStateData) {
+                    const existingState = JSON.parse(existingStateData);
+                    if (existingState && typeof existingState.discardState === 'object' && existingState.discardState !== null) {
+                        fullDiscardState = existingState.discardState;
+                    }
                 }
-            } catch (e) { /* Ignore */ }
-            fullDiscardState[currentSetKey] = [...discardIndices];
+            } catch (e) { /* Ignore parsing error for old data */ }
+
+            fullDiscardState[currentSetKey] = [...discardIndices]; // Save current set's discard pile
             stateToSave.discardState = fullDiscardState;
+
             try {
                 localStorage.setItem(LS_STATE_KEY, JSON.stringify(stateToSave));
             } catch (error) { console.error("Failed to save state to localStorage:", error); }
+
+            saveCustomSets(); // Also save any changes to custom sets themselves
         }
 
+
+        // --- Card Logic & Animations ---
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -873,6 +945,7 @@
         }
 
         function getPilePositions() {
+            // ... (getPilePositions function remains the same)
             if (!cardArea || !deckPileEl || !discardPileEl) {
                 return { deckX: 0, deckY: 0, discardX: 0, discardY: 0 };
             }
@@ -897,12 +970,12 @@
         }
 
         function positionCards(animate = false) {
+            // ... (positionCards function remains the same)
             if (cardElements.length === 0) return;
             const { deckX, deckY, discardX, discardY } = getPilePositions();
 
-            // --- Position Deck Cards ---
             const numDeckCards = deckIndices.length;
-            const deckCenterIndexOffset = (numDeckCards - 1) / 2; // Offset to find the "center" card's logical position
+            const deckCenterIndexOffset = (numDeckCards - 1) / 2;
 
             deckIndices.forEach((cardIndex, i) => {
                 const card = cardElements[cardIndex];
@@ -925,12 +998,9 @@
                 });
             });
 
-            // --- Position Discard Cards ---
             const numDiscardCards = discardIndices.length;
             const discardCenterIndexOffset = (numDiscardCards - 1) / 2;
-
-            // Optional: Use slightly different/smaller jitter for discard pile if desired
-            const discardMaxRandomXOffset = STACK_MAX_RANDOM_X_OFFSET * 0.8; // e.g., 80% of deck's
+            const discardMaxRandomXOffset = STACK_MAX_RANDOM_X_OFFSET * 0.8;
             const discardMaxRandomYOffset = STACK_MAX_RANDOM_Y_OFFSET * 0.8;
             const discardMaxRandomRotation = STACK_MAX_RANDOM_ROTATION * 0.8;
 
@@ -957,12 +1027,14 @@
             });
         }
         function updateButtonStates() {
+            // ... (updateButtonStates function remains the same)
             nextBtn.disabled = deckIndices.length === 0;
             prevBtn.disabled = discardIndices.length === 0;
             shuffleBtn.disabled = deckIndices.length <= 1;
         }
 
         function flipNextCard() {
+            // ... (flipNextCard function remains the same)
             if (deckIndices.length === 0 || !cardElements.length) return;
             nextBtn.disabled = true;
             prevBtn.disabled = true;
@@ -979,21 +1051,19 @@
             discardIndices.push(cardIndexToFlip);
             saveState();
 
-            const { discardX, discardY } = getPilePositions(); // deckY here is not used for target
+            const { discardX, discardY } = getPilePositions();
             const cardWidth = cardElement.offsetWidth;
             const cardHeight = cardElement.offsetHeight;
 
             const liftX = (cardArea.offsetWidth / 2) - (cardWidth / 2);
-            const deckPileRect = deckPileEl.getBoundingClientRect(); // Source pile for lift reference
+            const deckPileRect = deckPileEl.getBoundingClientRect();
             const cardAreaRect = cardArea.getBoundingClientRect();
-            const liftY = (deckPileRect.top - cardAreaRect.top) - cardHeight * 0.3; // Lift from deck position
+            const liftY = (deckPileRect.top - cardAreaRect.top) - cardHeight * 0.3;
 
-            // --- Calculate target position on discard pile using new centered logic ---
             const numDiscardCards = discardIndices.length;
             const newCardStackIndexInDiscard = numDiscardCards - 1;
             const discardCenterIndexOffset = (numDiscardCards - 1) / 2;
 
-            // Optional: Use slightly different/smaller jitter for discard pile if desired (consistent with positionCards)
             const discardTargetMaxRandomXOffset = STACK_MAX_RANDOM_X_OFFSET * 0.8;
             const discardTargetMaxRandomYOffset = STACK_MAX_RANDOM_Y_OFFSET * 0.8;
             const discardTargetMaxRandomRotation = STACK_MAX_RANDOM_ROTATION * 0.8;
@@ -1006,14 +1076,13 @@
             const targetX = discardX + targetRandomX;
 
             const targetRotationZ = (Math.random() * 2 - 1) * discardTargetMaxRandomRotation;
-            // --- End target calculation ---
 
-            gsap.set(cardElement, { zIndex: 200 + currentQuestions.length });
+            gsap.set(cardElement, { zIndex: 200 + (currentQuestions ? currentQuestions.length : 0) });
 
             const tl = gsap.timeline({
                 onComplete: () => {
-                    gsap.to(cardElement, { // Final settle, ensure rotation matches calculated target
-                        rotationZ: targetRotationZ, // Apply the pre-calculated rotation
+                    gsap.to(cardElement, {
+                        rotationZ: targetRotationZ,
                         zIndex: newCardStackIndexInDiscard + 2,
                         duration: 0.2, ease: 'power1.out'
                     });
@@ -1022,7 +1091,7 @@
             });
 
             tl.to(cardElement, {
-                x: liftX, y: liftY, rotationZ: 0, // Start with no Z rotation during lift
+                x: liftX, y: liftY, rotationZ: 0,
                 duration: ANIMATION_SPEED / 2.2, ease: 'circ.out'
             })
                 .to(cardElement, {
@@ -1031,12 +1100,12 @@
                 .to(cardElement, {
                     x: targetX,
                     y: targetY,
-                    // rotationZ will be applied in onComplete for the final "settle" to match random target
                     duration: ANIMATION_SPEED / 2.2, ease: 'circ.in'
                 }, `-=${ANIMATION_SPEED / 3.2}`);
         }
 
         function flipPreviousCard() {
+            // ... (flipPreviousCard function remains the same)
             if (discardIndices.length === 0 || !cardElements.length) return;
             prevBtn.disabled = true;
             nextBtn.disabled = true;
@@ -1053,16 +1122,15 @@
             deckIndices.push(cardIndexToReturn);
             saveState();
 
-            const { deckX, deckY } = getPilePositions(); // discardY here is not used for target
+            const { deckX, deckY } = getPilePositions();
             const cardWidth = cardElement.offsetWidth;
             const cardHeight = cardElement.offsetHeight;
 
             const liftX = (cardArea.offsetWidth / 2) - (cardWidth / 2);
-            const discardPileRect = discardPileEl.getBoundingClientRect(); // Source pile for lift reference
+            const discardPileRect = discardPileEl.getBoundingClientRect();
             const cardAreaRect = cardArea.getBoundingClientRect();
-            const liftY = (discardPileRect.top - cardAreaRect.top) - cardHeight * 0.3; // Lift from discard position
+            const liftY = (discardPileRect.top - cardAreaRect.top) - cardHeight * 0.3;
 
-            // --- Calculate target position on deck pile using new centered logic ---
             const numDeckCards = deckIndices.length;
             const newCardStackIndexInDeck = numDeckCards - 1;
             const deckCenterIndexOffset = (numDeckCards - 1) / 2;
@@ -1075,14 +1143,12 @@
             const targetX = deckX + targetRandomX;
 
             const targetRotationZ = (Math.random() * 2 - 1) * STACK_MAX_RANDOM_ROTATION;
-            // --- End target calculation ---
 
-            gsap.set(cardElement, { zIndex: 200 + currentQuestions.length });
+            gsap.set(cardElement, { zIndex: 200 + (currentQuestions ? currentQuestions.length : 0) });
 
             const tl = gsap.timeline({
                 onComplete: () => {
-                    gsap.to(cardElement, { // Final settle
-                        // x, y, rotationZ already set by timeline end using targetRotationZ
+                    gsap.to(cardElement, {
                         zIndex: newCardStackIndexInDeck + 2,
                         duration: 0.2, ease: 'power1.out'
                     });
@@ -1091,7 +1157,7 @@
             });
 
             tl.to(cardElement, {
-                x: liftX, y: liftY, rotationZ: 0, // Start with no Z rotation during lift
+                x: liftX, y: liftY, rotationZ: 0,
                 duration: ANIMATION_SPEED / 2.2, ease: 'circ.out'
             })
                 .to(cardElement, {
@@ -1100,12 +1166,13 @@
                 .to(cardElement, {
                     x: targetX,
                     y: targetY,
-                    rotationZ: targetRotationZ, // Apply the Z rotation as it moves to the pile
+                    rotationZ: targetRotationZ,
                     duration: ANIMATION_SPEED / 2.2, ease: 'circ.in'
                 }, `-=${ANIMATION_SPEED / 3.2}`);
         }
 
         function shuffleRemainingDeck() {
+            // ... (shuffleRemainingDeck function remains the same)
             if (deckIndices.length <= 1) return;
             shuffleBtn.disabled = true;
             nextBtn.disabled = true;
@@ -1126,7 +1193,7 @@
 
             const tl = gsap.timeline({
                 onComplete: () => {
-                    positionCards(true); // Use positionCards to settle them into the messy pile
+                    positionCards(true);
                     updateButtonStates();
                 }
             });
@@ -1146,7 +1213,7 @@
 
         function initialize(targetSetKey, initialDiscardStateForSets) {
             currentSetKey = targetSetKey;
-            applyTheme(currentSetKey);
+            applyTheme(currentSetKey); // Apply theme based on the actual set (could be custom)
             currentQuestions = questionSets[currentSetKey] || [];
 
             cardArea.querySelectorAll('.card').forEach(card => {
@@ -1177,24 +1244,32 @@
             });
         }
 
+
+        // --- Event Listeners & Initialization ---
         questionSetSelect.addEventListener('change', (event) => {
             const selectedSetKey = event.target.value;
-            const allDiscardStates = loadState().discardState;
-            initialize(selectedSetKey, allDiscardStates);
-            saveState();
+            const allDiscardStates = loadState().discardState; // Load all discard states
+            initialize(selectedSetKey, allDiscardStates); // Initialize with the new set
+            saveState(); // Save the new currentSetKey
         });
 
         nextBtn.addEventListener('click', flipNextCard);
         prevBtn.addEventListener('click', flipPreviousCard);
         shuffleBtn.addEventListener('click', shuffleRemainingDeck);
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedState = loadState();
-            let initialSetKey = savedState.selectedSet || 'strangers';
-            if (!themes[initialSetKey]) initialSetKey = 'strangers';
 
-            questionSetSelect.value = initialSetKey;
-            currentSetKey = initialSetKey;
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCustomSets(); // Load custom sets and populate dropdown BEFORE loading main state
+
+            const savedState = loadState(); // Load selected set and discard piles
+            let initialSetKey = savedState.selectedSet || 'strangers';
+
+            if (!questionSets[initialSetKey]) { // If saved set is no longer valid (e.g. deleted custom set)
+                initialSetKey = 'strangers'; // Fallback
+            }
+
+            questionSetSelect.value = initialSetKey; // Set dropdown to the determined initial set
+            // currentSetKey will be set by initialize()
             initialize(initialSetKey, savedState.discardState);
         });
 
@@ -1208,52 +1283,178 @@
             }, 150);
         });
 
-    </script>
 
-    <script>
         // --- AI Card Generation Sidebar Logic ---
         const apiKeyInput = document.getElementById('openai-api-key');
         const cardSpecsInput = document.getElementById('card-specs');
         const generateCardBtn = document.getElementById('generate-card-btn');
         const generatedCardsDisplay = document.getElementById('generated-cards-display');
+        const customSetNameInput = document.getElementById('custom-set-name');
+        const addGeneratedCardBtn = document.getElementById('add-generated-card-btn');
 
-        function handleGenerateCard() {
+        let lastGeneratedCardText = null;
+
+        async function generateOpenAICard(apiKey, promptText) {
+            const API_URL = 'https://api.openai.com/v1/chat/completions';
+
+            const requestBody = {
+                model: "o4-mini",
+                messages: [
+                    {
+                        role: "system",
+                        content: "You are a helpful assistant that generates concise, thought-provoking, and engaging questions for conversation card games. Each question should be suitable for a single card and encourage deeper connection or interesting discussion. Ensure the output is ONLY the question text, without any preamble, numbering, or extra formatting like quotation marks around the question itself unless it's part of the question."
+                    },
+                    {
+                        role: "user",
+                        content: promptText
+                    }
+                ],
+                max_tokens: 70, // Increased slightly for potentially longer questions
+                temperature: 0.75, // Slightly more creative
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('OpenAI API Error:', errorData);
+                    throw new Error(`API Error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+                }
+
+                const data = await response.json();
+                if (data.choices && data.choices.length > 0 && data.choices[0].message && data.choices[0].message.content) {
+                    // Sometimes GPT might still wrap in quotes, try to remove them if they are just wrapping the whole string
+                    let text = data.choices[0].message.content.trim();
+                    if (text.startsWith('"') && text.endsWith('"')) {
+                        text = text.substring(1, text.length - 1);
+                    }
+                    return text;
+                } else {
+                    console.error("Invalid response structure from OpenAI API:", data);
+                    throw new Error("Invalid response structure from OpenAI API.");
+                }
+            } catch (error) {
+                console.error('Error calling OpenAI API:', error);
+                throw error;
+            }
+        }
+
+        async function handleGenerateCard() {
             const apiKey = apiKeyInput.value.trim();
             const specifications = cardSpecsInput.value.trim();
 
             if (!apiKey) {
                 generatedCardsDisplay.textContent = "Error: Please enter your OpenAI API key.";
+                addGeneratedCardBtn.disabled = true;
                 return;
             }
 
             if (!specifications) {
-                generatedCardsDisplay.textContent = "Error: Please enter card specifications.";
+                generatedCardsDisplay.textContent = "Error: Please enter card specifications/theme.";
+                addGeneratedCardBtn.disabled = true;
                 return;
             }
 
-            // Placeholder for actual API call
-            generatedCardsDisplay.textContent = `Generated Card (Simulated):\nPrompt: "${specifications}"\n(Note: This is a placeholder. API key was present.)`;
+            generateCardBtn.disabled = true;
+            addGeneratedCardBtn.disabled = true;
+            generatedCardsDisplay.textContent = "Generating card... please wait.";
+            lastGeneratedCardText = null;
+
+            const fullPrompt = `Generate a single, concise, thought-provoking question for a conversation card game based on the following theme or idea: "${specifications}". The question should be suitable for a single card. Output ONLY the question text.`;
+
+            try {
+                const cardText = await generateOpenAICard(apiKey, fullPrompt);
+                lastGeneratedCardText = cardText;
+                generatedCardsDisplay.innerHTML = `<strong>Generated Card:</strong><br><pre style="white-space: pre-wrap; word-wrap: break-word;">${cardText}</pre><br>Enter a new set name or select a custom set, then click "Add Generated Card to Set".`;
+                addGeneratedCardBtn.disabled = false;
+            } catch (error) {
+                generatedCardsDisplay.textContent = `Error generating card: ${error.message}`;
+                lastGeneratedCardText = null;
+            } finally {
+                generateCardBtn.disabled = false;
+            }
         }
 
-        if (generateCardBtn) { // Ensure button exists before adding listener
+        function handleAddGeneratedCardToSet() {
+            if (!lastGeneratedCardText) {
+                alert("Please generate a card first.");
+                return;
+            }
+
+            const newSetNameRaw = customSetNameInput.value.trim();
+            let targetSetKey = questionSetSelect.value;
+            let targetSetDisplayName;
+
+            if (newSetNameRaw) {
+                const newSetSanitizedName = newSetNameRaw.toLowerCase().replace(/\s+/g, '_').replace(/[^\w-]/g, '');
+                const newSetKey = "custom_" + newSetSanitizedName;
+                targetSetDisplayName = newSetNameRaw;
+
+                if (!questionSets[newSetKey]) {
+                    questionSets[newSetKey] = [];
+                    addCustomSetToDropdown(newSetKey, newSetNameRaw);
+                    alert(`New set "${newSetNameRaw}" created.`);
+                    questionSetSelect.value = newSetKey;
+                }
+                targetSetKey = newSetKey;
+                customSetNameInput.value = '';
+            } else {
+                const selectedOption = questionSetSelect.options[questionSetSelect.selectedIndex];
+                targetSetDisplayName = selectedOption.text.replace(" (Custom)", "");
+
+                if (!targetSetKey.startsWith("custom_")) {
+                    alert("Cannot add cards to predefined sets. Please enter a name for a new custom set, or select an existing custom set from the dropdown.");
+                    return;
+                }
+            }
+
+            if (!questionSets[targetSetKey]) {
+                questionSets[targetSetKey] = [];
+            }
+
+            questionSets[targetSetKey].push(lastGeneratedCardText);
+
+            generatedCardsDisplay.innerHTML = `<strong>Generated Card:</strong><br><pre style="white-space: pre-wrap; word-wrap: break-word;">${lastGeneratedCardText}</pre><br><em>Card added to set: "${targetSetDisplayName}"</em>`;
+            lastGeneratedCardText = null;
+            addGeneratedCardBtn.disabled = true;
+
+            if (currentSetKey === targetSetKey) {
+                const allDiscardStates = loadState().discardState;
+                initialize(currentSetKey, allDiscardStates);
+            }
+
+            saveState(); // Saves discard states and custom sets
+        }
+
+        if (generateCardBtn) {
             generateCardBtn.addEventListener('click', handleGenerateCard);
-        } else {
-            console.error("Error: Could not find the 'generate-card-btn' element.");
         }
-    </script>
+        if (addGeneratedCardBtn) {
+            addGeneratedCardBtn.addEventListener('click', handleAddGeneratedCardToSet);
+        }
 
+    </script>
+    <!-- Service Worker script remains the same -->
     <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-              console.log('ServiceWorker registration successful with scope: ', registration.scope);
-            })
-            .catch(err => {
-              console.log('ServiceWorker registration failed: ', err);
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
             });
-        });
-      }
+        }
     </script>
 </body>
 
