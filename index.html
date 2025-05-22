@@ -70,25 +70,19 @@
             --theme-card-back-symbol: "✧";
             --theme-card-back-symbol-color: var(--theme-primary);
             --theme-card-back-symbol-shadow-color: var(--theme-primary-darker);
+
+            --sidebar-width: 320px; /* Sidebar width */
         }
 
         body {
             font-family: 'Lora', serif;
-            display: flex;
-            align-items: flex-start;
-            /* Align items to the top */
-            justify-content: flex-start;
-            /* Explicitly align children to the start */
+            display: flex; /* Changed for sidebar layout */
             min-height: 100vh;
-            /* Fallback for older browsers */
             min-height: 100dvh;
-            /* Use dynamic viewport height */
             background-color: var(--theme-page-background);
             color: var(--theme-card-text-color);
             margin: 0;
-            overflow-x: hidden;
-            overflow-y: hidden;
-            /* Prevent body scrolling, app-container will handle its own if needed */
+            overflow-x: hidden; /* Prevent body scroll due to sidebar */
             transition: background-color 0.3s ease;
         }
 
@@ -97,51 +91,76 @@
             flex-direction: column;
             align-items: center;
             gap: 15px;
-            /* width: 100%; Removed to allow flex-grow to manage width */
-            /* max-width: 1200px; /* May need adjustment - Removed to prevent overflow with sidebar */
             padding: 15px 20px;
             box-sizing: border-box;
             height: 100dvh;
-            /* Make app container take full dynamic viewport height */
             overflow-y: auto;
-            /* Allow scrolling within app-container if content overflows */
             justify-content: space-between;
             flex-grow: 1;
-            /* Allow app-container to take available space */
+            transition: margin-right 0.3s ease-in-out; /* For sidebar push effect */
+        }
+        
+        .sidebar-open .app-container {
+            /* When sidebar is open, you might want to adjust the main content if it's not fixed */
+            /* Example: margin-right: var(--sidebar-width); */
+        }
+
+
+        .sidebar-wrapper {
+            width: var(--sidebar-width);
+            position: fixed; /* Or absolute if body is relative */
+            top: 0;
+            right: calc(-1 * var(--sidebar-width)); /* Start off-screen */
+            height: 100dvh;
+            background-color: var(--theme-page-background, #f0f0f0);
+            border-left: 1px solid var(--theme-card-border-color, #ccc);
+            box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+            transition: right 0.3s ease-in-out;
+            z-index: 1000; /* Ensure sidebar is on top */
+            display: flex; /* To make ai-sidebar fill it */
+            flex-direction: column;
+        }
+
+        .sidebar-wrapper.open {
+            right: 0; /* Slide in */
         }
 
         .ai-sidebar {
-            width: 300px;
-            padding: 15px;
-            border-left: 1px solid var(--theme-card-border-color, #ccc);
-            background-color: var(--theme-page-background, #f9f9f9);
-            height: 100dvh;
+            /* width: 100%; Removed, as wrapper controls width */
+            padding: 20px; /* Increased padding */
+            /* border-left: 1px solid var(--theme-card-border-color, #ccc); Removed, wrapper has border */
+            /* background-color: var(--theme-page-background, #f9f9f9); Removed, wrapper has background */
+            /* height: 100dvh; Removed, flex child will fill wrapper */
             overflow-y: auto;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            /* Spacing between elements in the sidebar */
+            gap: 12px; /* Spacing between elements in the sidebar */
+            flex-grow: 1; /* Allow ai-sidebar to fill the wrapper */
         }
 
         .ai-sidebar h3 {
             font-family: 'Cinzel', serif;
             color: var(--theme-primary-darker, #333);
             margin-top: 0;
-            font-size: 1.2em;
+            margin-bottom: 10px; /* Added margin */
+            font-size: 1.3em; /* Slightly larger */
+            text-align: center;
         }
 
         .ai-sidebar label {
-            font-size: 0.85em;
+            font-size: 0.9em; /* Slightly larger */
             color: var(--theme-settings-text-color, #555);
+            margin-bottom: -5px; /* Reduce space before input */
         }
 
         .ai-sidebar input[type="password"],
+        .ai-sidebar input[type="text"],
         .ai-sidebar textarea {
             width: 100%;
-            padding: 8px;
+            padding: 10px; /* Increased padding */
             border: 1px solid var(--theme-select-border-color, #ccc);
-            border-radius: 4px;
+            border-radius: 5px; /* Slightly more rounded */
             font-family: 'Lora', serif;
             font-size: 0.9em;
             box-sizing: border-box;
@@ -151,40 +170,76 @@
 
         .ai-sidebar textarea {
             resize: vertical;
-            /* Allow vertical resize only */
+            min-height: 80px; /* Min height for spec textarea */
+        }
+        .ai-sidebar .editable-card-textarea {
+             min-height: 60px; /* Min height for generated card textareas */
+             margin-bottom: 5px;
         }
 
+
         .ai-sidebar button {
-            padding: 10px 15px;
+            padding: 12px 18px; /* Increased padding */
             font-family: 'Cinzel', serif;
-            font-size: 0.9em;
+            font-size: 0.95em; /* Slightly larger */
             background-color: var(--theme-button-background, #566573);
             color: var(--theme-button-text-color, #fff);
             border: 1px solid var(--theme-button-border-color, #707B7C);
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.2s ease;
+            margin-top: 5px; /* Add some top margin */
         }
 
-        .ai-sidebar button:hover {
+        .ai-sidebar button:hover:not(:disabled) {
             background-color: var(--theme-button-hover-background, #707B7C);
         }
+        .ai-sidebar button:disabled {
+            background-color: var(--theme-button-disabled-background);
+            color: var(--theme-button-disabled-text-color);
+            cursor: not-allowed;
+        }
 
-        .ai-sidebar #generated-cards-display {
-            margin-top: 10px;
+
+        .ai-sidebar #generated-cards-container { /* Renamed from generated-cards-display */
+            margin-top: 15px;
             padding: 10px;
             border: 1px dashed var(--theme-pile-border-color, #ddd);
             border-radius: 4px;
-            min-height: 50px;
+            min-height: 100px; /* Adjusted min-height */
             font-size: 0.85em;
             background-color: rgba(0, 0, 0, 0.02);
-            /* Subtle background */
-            white-space: pre-wrap;
-            /* To respect newlines in generated text */
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .generated-card-item {
+            border: 1px solid var(--theme-select-border-color);
+            padding: 8px;
+            border-radius: 4px;
+            background-color: var(--theme-card-background);
+        }
+        .generated-card-item textarea {
+            width: 100%;
+            box-sizing: border-box;
+            min-height: 50px;
+            font-size: 0.9em;
+            border: 1px solid #eee; /* Lighter border for textarea inside item */
+        }
+
+
+        .header-controls {
+            display: flex;
+            justify-content: space-between; /* Aligns items to ends */
+            align-items: center;
+            width: 100%;
+            max-width: 450px; /* Max width for the whole header area */
+            padding: 0 10px; /* Padding for hamburger spacing */
+            box-sizing: border-box;
         }
 
         .settings {
-            margin-bottom: 10px;
+            /* margin-bottom: 10px; Removed, handled by app-container gap */
             display: flex;
             align-items: center;
             gap: 10px;
@@ -192,12 +247,27 @@
             padding: 8px 12px;
             border-radius: 8px;
             border: 1px solid var(--theme-select-border-color);
-            width: 100%;
-            max-width: 350px;
+            /* width: 100%; Removed, flex-grow will handle */
+            /* max-width: 350px; Let header-controls manage max-width */
             box-sizing: border-box;
-            flex-shrink: 0;
-            /* Prevent settings from shrinking */
+            flex-grow: 1; /* Allow settings to take available space */
+            flex-shrink: 1; /* Allow shrinking if needed */
         }
+        
+        .hamburger-menu {
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px 10px;
+            background: none;
+            border: none;
+            color: var(--theme-primary-darker);
+            order: -1; /* Place hamburger before settings on left */
+             margin-right: 10px; /* Space between hamburger and settings */
+        }
+         .hamburger-menu:hover {
+            color: var(--theme-primary);
+        }
+
 
         .settings label {
             flex-shrink: 0;
@@ -235,18 +305,14 @@
         .card-area {
             position: relative;
             width: 100%;
-            /* Height for two cards + new gap + label space */
-            /* Let flexbox determine height more, or set a flexible min-height */
             min-height: calc(var(--card-height) * 2 + var(--pile-gap) + 70px);
             flex-grow: 1;
-            /* Allow card area to take up available space */
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             perspective: 1000px;
             margin: 5px 0;
-            /* Reduced vertical margin */
         }
 
         .deck-pile,
@@ -263,9 +329,7 @@
             box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.15);
             position: relative;
             z-index: 1;
-            /* Ensure piles are behind cards */
             flex-shrink: 0;
-            /* Prevent piles from shrinking */
         }
 
         .deck-pile {
@@ -278,7 +342,6 @@
         }
 
         .deck-pile::before {
-            /* Label for Unseen Fates (Deck) */
             content: attr(data-pile-label);
             position: absolute;
             top: -28px;
@@ -291,7 +354,6 @@
         }
 
         .discard-pile::before {
-            /* Label for Revealed Paths (Discard) */
             content: attr(data-pile-label);
             position: absolute;
             bottom: -28px;
@@ -400,11 +462,8 @@
             width: 100%;
             justify-content: center;
             padding-bottom: 10px;
-            /* Ensure some padding at the very bottom */
             margin-top: 5px;
-            /* Reduced margin */
             flex-shrink: 0;
-            /* Prevent controls from shrinking */
         }
 
         button {
@@ -446,15 +505,18 @@
 
 <body>
     <div class="app-container">
-        <div class="settings">
-            <label for="question-set-select">Choose Arcana:</label>
-            <select id="question-set-select">
-                <option value="strangers">Encounters (Strangers)</option>
-                <option value="acquaintances">Whispers (Acquaintances)</option>
-                <option value="friends">Revelations (Friends)</option>
-                <option value="date_night">Destiny (Date Night)</option>
-                <option value="lovers">Embers (Lovers)</option>
-            </select>
+        <div class="header-controls">
+            <button class="hamburger-menu" id="hamburger-btn" title="Toggle Custom Card Generator">&#9776;</button>
+            <div class="settings">
+                <label for="question-set-select">Choose Arcana:</label>
+                <select id="question-set-select">
+                    <option value="strangers">Encounters (Strangers)</option>
+                    <option value="acquaintances">Whispers (Acquaintances)</option>
+                    <option value="friends">Revelations (Friends)</option>
+                    <option value="date_night">Destiny (Date Night)</option>
+                    <option value="lovers">Embers (Lovers)</option>
+                </select>
+            </div>
         </div>
 
         <div class="card-area">
@@ -469,23 +531,22 @@
         </div>
     </div>
 
-    <div class="ai-sidebar">
-        <h3>Generate Custom Cards</h3>
-        <label for="openai-api-key">OpenAI API Key:</label>
-        <input type="password" id="openai-api-key" placeholder="Enter your API key">
+    <div class="sidebar-wrapper" id="ai-sidebar-wrapper">
+        <div class="ai-sidebar">
+            <h3>Generate Custom Cards</h3>
+            <label for="openai-api-key">OpenAI API Key:</label>
+            <input type="password" id="openai-api-key" placeholder="Enter your API key">
 
-        <label for="card-specs">Card Specifications/Theme:</label>
-        <textarea id="card-specs" rows="4"
-            placeholder="e.g., 'A question about childhood dreams' or 'Spicy questions for couples'"></textarea>
-        <button id="generate-card-btn">Generate Card</button>
+            <label for="card-specs">Card Specifications/Theme (for 5 cards):</label>
+            <textarea id="card-specs" rows="3"
+                placeholder="e.g., 'Questions about childhood dreams' or 'Spicy questions for couples'"></textarea>
+            <button id="generate-cards-btn">Generate 5 Cards</button> <div id="generated-cards-container" style="min-height: 150px; margin-bottom:10px;">
+                <p>Generated cards will appear here for editing.</p>
+            </div>
 
-        <div id="generated-cards-display" style="min-height: 60px; margin-bottom:10px;">
-            <!-- Generated card text will appear here -->
-        </div>
-
-        <label for="custom-set-name">New Set Name (or select custom set below):</label>
-        <input type="text" id="custom-set-name" placeholder="e.g., My Custom Questions">
-        <button id="add-generated-card-btn" disabled>Add Generated Card to Set</button>
+            <label for="custom-set-name">New Set Name (or select custom set in main app):</label>
+            <input type="text" id="custom-set-name" placeholder="e.g., My Custom Questions">
+            <button id="add-generated-cards-btn" disabled>Add Generated Cards to Set</button> </div>
     </div>
 
     <script>
@@ -649,7 +710,7 @@
         };
 
         function applyTheme(themeName) {
-            const selectedTheme = themes[themeName] || themes.strangers; // Fallback to strangers theme
+            const selectedTheme = themes[themeName] || themes.strangers;
             for (const [key, value] of Object.entries(selectedTheme)) {
                 document.documentElement.style.setProperty(key, value);
             }
@@ -657,7 +718,6 @@
             document.documentElement.style.setProperty('--theme-select-arrow-color-svg-encoded', encodeURIComponent(arrowColor));
         }
 
-        // Make questionSets a 'let' variable so it can be modified with custom sets
         let questionSets = {
             "strangers": [
                 "What hobby or interest lights you up that most people wouldn't guess about you?",
@@ -802,8 +862,8 @@
         const STACK_MAX_RANDOM_Y_OFFSET = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stack-max-random-y-offset').trim());
         const STACK_MAX_RANDOM_ROTATION = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stack-max-random-rotation').trim());
 
-        const LS_STATE_KEY = 'mysticConversationState_v7'; // Incremented version for state structure changes
-        const LS_CUSTOM_SETS_KEY = 'mysticConversation_customSets_v1';
+        const LS_STATE_KEY = 'mysticConversationState_v8'; // Incremented version
+        const LS_CUSTOM_SETS_KEY = 'mysticConversation_customSets_v2'; // Incremented version
 
         const cardArea = document.querySelector('.card-area');
         const deckPileEl = document.querySelector('.deck-pile');
@@ -812,6 +872,9 @@
         const prevBtn = document.getElementById('prev-btn');
         const shuffleBtn = document.getElementById('shuffle-btn');
         const questionSetSelect = document.getElementById('question-set-select');
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const aiSidebarWrapper = document.getElementById('ai-sidebar-wrapper');
+
 
         let cardElements = [];
         let currentQuestions = [];
@@ -820,9 +883,16 @@
         let currentSetKey = 'strangers';
 
 
+        // --- Sidebar Toggle ---
+        hamburgerBtn.addEventListener('click', () => {
+            aiSidebarWrapper.classList.toggle('open');
+            // Optional: toggle a class on body or app-container if you want to push content
+            // document.body.classList.toggle('sidebar-open'); 
+        });
+
+
         // --- Custom Set Management ---
         function addCustomSetToDropdown(setKey, setName) {
-            // Check if option already exists to prevent duplicates
             if (questionSetSelect.querySelector(`option[value="${setKey}"]`)) {
                 return;
             }
@@ -838,7 +908,7 @@
                 const storedCustomSets = localStorage.getItem(LS_CUSTOM_SETS_KEY);
                 if (storedCustomSets) {
                     const parsedCustomSets = JSON.parse(storedCustomSets);
-                    Object.assign(questionSets, parsedCustomSets); // Merge loaded custom sets
+                    Object.assign(questionSets, parsedCustomSets);
 
                     for (const key in parsedCustomSets) {
                         if (key.startsWith("custom_") && questionSets[key]) {
@@ -875,11 +945,9 @@
                 if (storedData) {
                     const parsedData = JSON.parse(storedData);
                     if (parsedData && typeof parsedData.selectedSet === 'string' && typeof parsedData.discardState === 'object') {
-                        // Check if selectedSet exists in the (potentially augmented by custom sets) questionSets
                         if (questionSets[parsedData.selectedSet]) {
                             savedState.selectedSet = parsedData.selectedSet;
                         } else {
-                            // If saved set doesn't exist (e.g. custom set deleted elsewhere), fallback
                             savedState.selectedSet = 'strangers';
                         }
                         if (typeof parsedData.discardState === 'object' && parsedData.discardState !== null) {
@@ -908,14 +976,14 @@
                 }
             } catch (e) { /* Ignore parsing error for old data */ }
 
-            fullDiscardState[currentSetKey] = [...discardIndices]; // Save current set's discard pile
+            fullDiscardState[currentSetKey] = [...discardIndices];
             stateToSave.discardState = fullDiscardState;
 
             try {
                 localStorage.setItem(LS_STATE_KEY, JSON.stringify(stateToSave));
             } catch (error) { console.error("Failed to save state to localStorage:", error); }
 
-            saveCustomSets(); // Also save any changes to custom sets themselves
+            saveCustomSets();
         }
 
 
@@ -945,35 +1013,25 @@
         }
 
         function getPilePositions() {
-            // ... (getPilePositions function remains the same)
             if (!cardArea || !deckPileEl || !discardPileEl) {
                 return { deckX: 0, deckY: 0, discardX: 0, discardY: 0 };
             }
             const areaRect = cardArea.getBoundingClientRect();
             const deckRect = deckPileEl.getBoundingClientRect();
             const discardRect = discardPileEl.getBoundingClientRect();
-
             const cardWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--card-width'));
 
             const deckPileX = (areaRect.width / 2) - (cardWidth / 2);
             const deckPileY = deckRect.top - areaRect.top;
-
             const discardPileX = (areaRect.width / 2) - (cardWidth / 2);
             const discardPileY = discardRect.top - areaRect.top;
 
-            return {
-                deckX: deckPileX,
-                deckY: deckPileY,
-                discardX: discardPileX,
-                discardY: discardPileY
-            };
+            return { deckX: deckPileX, deckY: deckPileY, discardX: discardPileX, discardY: discardPileY };
         }
 
         function positionCards(animate = false) {
-            // ... (positionCards function remains the same)
             if (cardElements.length === 0) return;
             const { deckX, deckY, discardX, discardY } = getPilePositions();
-
             const numDeckCards = deckIndices.length;
             const deckCenterIndexOffset = (numDeckCards - 1) / 2;
 
@@ -988,13 +1046,8 @@
                 const randomRot = (Math.random() * 2 - 1) * STACK_MAX_RANDOM_ROTATION;
 
                 gsap.to(card, {
-                    x: deckX + randomX,
-                    y: finalY,
-                    rotationY: 0,
-                    rotationZ: randomRot,
-                    zIndex: i + 2,
-                    duration: animate ? ANIMATION_SPEED / 1.5 : 0,
-                    ease: 'power2.out'
+                    x: deckX + randomX, y: finalY, rotationY: 0, rotationZ: randomRot,
+                    zIndex: i + 2, duration: animate ? ANIMATION_SPEED / 1.5 : 0, ease: 'power2.out'
                 });
             });
 
@@ -1003,7 +1056,6 @@
             const discardMaxRandomXOffset = STACK_MAX_RANDOM_X_OFFSET * 0.8;
             const discardMaxRandomYOffset = STACK_MAX_RANDOM_Y_OFFSET * 0.8;
             const discardMaxRandomRotation = STACK_MAX_RANDOM_ROTATION * 0.8;
-
 
             discardIndices.forEach((cardIndex, i) => {
                 const card = cardElements[cardIndex];
@@ -1016,45 +1068,30 @@
                 const randomRot = (Math.random() * 2 - 1) * discardMaxRandomRotation;
 
                 gsap.to(card, {
-                    x: discardX + randomX,
-                    y: finalY,
-                    rotationY: 180,
-                    rotationZ: randomRot,
-                    zIndex: i + 2,
-                    duration: animate ? ANIMATION_SPEED / 2 : 0,
-                    ease: 'power2.out'
+                    x: discardX + randomX, y: finalY, rotationY: 180, rotationZ: randomRot,
+                    zIndex: i + 2, duration: animate ? ANIMATION_SPEED / 2 : 0, ease: 'power2.out'
                 });
             });
         }
         function updateButtonStates() {
-            // ... (updateButtonStates function remains the same)
             nextBtn.disabled = deckIndices.length === 0;
             prevBtn.disabled = discardIndices.length === 0;
             shuffleBtn.disabled = deckIndices.length <= 1;
         }
 
         function flipNextCard() {
-            // ... (flipNextCard function remains the same)
             if (deckIndices.length === 0 || !cardElements.length) return;
-            nextBtn.disabled = true;
-            prevBtn.disabled = true;
-            shuffleBtn.disabled = true;
+            nextBtn.disabled = true; prevBtn.disabled = true; shuffleBtn.disabled = true;
 
             const cardIndexToFlip = deckIndices.pop();
             const cardElement = cardElements[cardIndexToFlip];
-
-            if (!cardElement) {
-                updateButtonStates(); return;
-            }
+            if (!cardElement) { updateButtonStates(); return; }
             gsap.killTweensOf(cardElement);
-
             discardIndices.push(cardIndexToFlip);
             saveState();
 
             const { discardX, discardY } = getPilePositions();
-            const cardWidth = cardElement.offsetWidth;
-            const cardHeight = cardElement.offsetHeight;
-
+            const cardWidth = cardElement.offsetWidth; const cardHeight = cardElement.offsetHeight;
             const liftX = (cardArea.offsetWidth / 2) - (cardWidth / 2);
             const deckPileRect = deckPileEl.getBoundingClientRect();
             const cardAreaRect = cardArea.getBoundingClientRect();
@@ -1063,7 +1100,6 @@
             const numDiscardCards = discardIndices.length;
             const newCardStackIndexInDiscard = numDiscardCards - 1;
             const discardCenterIndexOffset = (numDiscardCards - 1) / 2;
-
             const discardTargetMaxRandomXOffset = STACK_MAX_RANDOM_X_OFFSET * 0.8;
             const discardTargetMaxRandomYOffset = STACK_MAX_RANDOM_Y_OFFSET * 0.8;
             const discardTargetMaxRandomRotation = STACK_MAX_RANDOM_ROTATION * 0.8;
@@ -1071,61 +1107,35 @@
             const targetStackingYOffset = (newCardStackIndexInDiscard - discardCenterIndexOffset) * CARD_VISIBLE_THICKNESS;
             const targetRandomYJitter = (Math.random() * 2 - 1) * discardTargetMaxRandomYOffset;
             const targetY = discardY + targetStackingYOffset + targetRandomYJitter;
-
             const targetRandomX = (Math.random() * 2 - 1) * discardTargetMaxRandomXOffset;
             const targetX = discardX + targetRandomX;
-
             const targetRotationZ = (Math.random() * 2 - 1) * discardTargetMaxRandomRotation;
 
             gsap.set(cardElement, { zIndex: 200 + (currentQuestions ? currentQuestions.length : 0) });
-
             const tl = gsap.timeline({
                 onComplete: () => {
-                    gsap.to(cardElement, {
-                        rotationZ: targetRotationZ,
-                        zIndex: newCardStackIndexInDiscard + 2,
-                        duration: 0.2, ease: 'power1.out'
-                    });
+                    gsap.to(cardElement, { rotationZ: targetRotationZ, zIndex: newCardStackIndexInDiscard + 2, duration: 0.2, ease: 'power1.out' });
                     updateButtonStates();
                 }
             });
-
-            tl.to(cardElement, {
-                x: liftX, y: liftY, rotationZ: 0,
-                duration: ANIMATION_SPEED / 2.2, ease: 'circ.out'
-            })
-                .to(cardElement, {
-                    rotationY: 180, duration: ANIMATION_SPEED / 1.7, ease: 'back.inOut(1.4)',
-                }, `-=${ANIMATION_SPEED / 4.5}`)
-                .to(cardElement, {
-                    x: targetX,
-                    y: targetY,
-                    duration: ANIMATION_SPEED / 2.2, ease: 'circ.in'
-                }, `-=${ANIMATION_SPEED / 3.2}`);
+            tl.to(cardElement, { x: liftX, y: liftY, rotationZ: 0, duration: ANIMATION_SPEED / 2.2, ease: 'circ.out' })
+                .to(cardElement, { rotationY: 180, duration: ANIMATION_SPEED / 1.7, ease: 'back.inOut(1.4)' }, `-=${ANIMATION_SPEED / 4.5}`)
+                .to(cardElement, { x: targetX, y: targetY, duration: ANIMATION_SPEED / 2.2, ease: 'circ.in' }, `-=${ANIMATION_SPEED / 3.2}`);
         }
 
         function flipPreviousCard() {
-            // ... (flipPreviousCard function remains the same)
             if (discardIndices.length === 0 || !cardElements.length) return;
-            prevBtn.disabled = true;
-            nextBtn.disabled = true;
-            shuffleBtn.disabled = true;
+            prevBtn.disabled = true; nextBtn.disabled = true; shuffleBtn.disabled = true;
 
             const cardIndexToReturn = discardIndices.pop();
             const cardElement = cardElements[cardIndexToReturn];
-
-            if (!cardElement) {
-                updateButtonStates(); return;
-            }
+            if (!cardElement) { updateButtonStates(); return; }
             gsap.killTweensOf(cardElement);
-
             deckIndices.push(cardIndexToReturn);
             saveState();
 
             const { deckX, deckY } = getPilePositions();
-            const cardWidth = cardElement.offsetWidth;
-            const cardHeight = cardElement.offsetHeight;
-
+            const cardWidth = cardElement.offsetWidth; const cardHeight = cardElement.offsetHeight;
             const liftX = (cardArea.offsetWidth / 2) - (cardWidth / 2);
             const discardPileRect = discardPileEl.getBoundingClientRect();
             const cardAreaRect = cardArea.getBoundingClientRect();
@@ -1134,97 +1144,52 @@
             const numDeckCards = deckIndices.length;
             const newCardStackIndexInDeck = numDeckCards - 1;
             const deckCenterIndexOffset = (numDeckCards - 1) / 2;
-
             const targetStackingYOffset = (newCardStackIndexInDeck - deckCenterIndexOffset) * CARD_VISIBLE_THICKNESS;
             const targetRandomYJitter = (Math.random() * 2 - 1) * STACK_MAX_RANDOM_Y_OFFSET;
             const targetY = deckY + targetStackingYOffset + targetRandomYJitter;
-
             const targetRandomX = (Math.random() * 2 - 1) * STACK_MAX_RANDOM_X_OFFSET;
             const targetX = deckX + targetRandomX;
-
             const targetRotationZ = (Math.random() * 2 - 1) * STACK_MAX_RANDOM_ROTATION;
 
             gsap.set(cardElement, { zIndex: 200 + (currentQuestions ? currentQuestions.length : 0) });
-
             const tl = gsap.timeline({
                 onComplete: () => {
-                    gsap.to(cardElement, {
-                        zIndex: newCardStackIndexInDeck + 2,
-                        duration: 0.2, ease: 'power1.out'
-                    });
+                    gsap.to(cardElement, { zIndex: newCardStackIndexInDeck + 2, duration: 0.2, ease: 'power1.out' });
                     updateButtonStates();
                 }
             });
-
-            tl.to(cardElement, {
-                x: liftX, y: liftY, rotationZ: 0,
-                duration: ANIMATION_SPEED / 2.2, ease: 'circ.out'
-            })
-                .to(cardElement, {
-                    rotationY: 0, duration: ANIMATION_SPEED / 1.7, ease: 'back.inOut(1.4)',
-                }, `-=${ANIMATION_SPEED / 4.5}`)
-                .to(cardElement, {
-                    x: targetX,
-                    y: targetY,
-                    rotationZ: targetRotationZ,
-                    duration: ANIMATION_SPEED / 2.2, ease: 'circ.in'
-                }, `-=${ANIMATION_SPEED / 3.2}`);
+            tl.to(cardElement, { x: liftX, y: liftY, rotationZ: 0, duration: ANIMATION_SPEED / 2.2, ease: 'circ.out' })
+                .to(cardElement, { rotationY: 0, duration: ANIMATION_SPEED / 1.7, ease: 'back.inOut(1.4)' }, `-=${ANIMATION_SPEED / 4.5}`)
+                .to(cardElement, { x: targetX, y: targetY, rotationZ: targetRotationZ, duration: ANIMATION_SPEED / 2.2, ease: 'circ.in' }, `-=${ANIMATION_SPEED / 3.2}`);
         }
 
         function shuffleRemainingDeck() {
-            // ... (shuffleRemainingDeck function remains the same)
             if (deckIndices.length <= 1) return;
-            shuffleBtn.disabled = true;
-            nextBtn.disabled = true;
-            prevBtn.disabled = true;
-
-            deckIndices.forEach(cardIndex => {
-                const card = cardElements[cardIndex];
-                if (card) gsap.killTweensOf(card);
-            });
-
+            shuffleBtn.disabled = true; nextBtn.disabled = true; prevBtn.disabled = true;
+            deckIndices.forEach(cardIndex => { const card = cardElements[cardIndex]; if (card) gsap.killTweensOf(card); });
             shuffleArray(deckIndices);
-
-            if (!deckPileEl || !cardArea || cardElements.length === 0) {
-                updateButtonStates(); return;
-            }
-
+            if (!deckPileEl || !cardArea || cardElements.length === 0) { updateButtonStates(); return; }
             const { deckX, deckY } = getPilePositions();
-
-            const tl = gsap.timeline({
-                onComplete: () => {
-                    positionCards(true);
-                    updateButtonStates();
-                }
-            });
-
+            const tl = gsap.timeline({ onComplete: () => { positionCards(true); updateButtonStates(); } });
             deckIndices.forEach((cardIndex, i) => {
-                const card = cardElements[cardIndex];
-                if (!card) return;
+                const card = cardElements[cardIndex]; if (!card) return;
                 tl.to(card, {
-                    x: deckX + (Math.random() * 70 - 35),
-                    y: deckY - card.offsetHeight * 0.25 + (Math.random() * 50 - 25),
-                    rotationZ: Math.random() * 40 - 20,
-                    zIndex: 100 + i,
-                    duration: ANIMATION_SPEED / 2.2, ease: 'circ.out'
+                    x: deckX + (Math.random() * 70 - 35), y: deckY - card.offsetHeight * 0.25 + (Math.random() * 50 - 25),
+                    rotationZ: Math.random() * 40 - 20, zIndex: 100 + i, duration: ANIMATION_SPEED / 2.2, ease: 'circ.out'
                 }, i * 0.018);
             });
         }
 
         function initialize(targetSetKey, initialDiscardStateForSets) {
             currentSetKey = targetSetKey;
-            applyTheme(currentSetKey); // Apply theme based on the actual set (could be custom)
+            applyTheme(currentSetKey.startsWith("custom_") ? 'strangers' : currentSetKey); // Apply base theme or specific one
             currentQuestions = questionSets[currentSetKey] || [];
 
-            cardArea.querySelectorAll('.card').forEach(card => {
-                gsap.killTweensOf(card);
-                card.remove();
-            });
+            cardArea.querySelectorAll('.card').forEach(card => { gsap.killTweensOf(card); card.remove(); });
             cardElements = [];
 
             const savedDiscardForThisSet = (initialDiscardStateForSets[currentSetKey] || []).filter(idx => Number.isInteger(idx) && idx >= 0 && idx < currentQuestions.length);
             discardIndices = [...new Set(savedDiscardForThisSet)];
-
             const allPossibleIndices = currentQuestions.map((_, i) => i);
             deckIndices = allPossibleIndices.filter(index => !discardIndices.includes(index));
 
@@ -1233,24 +1198,17 @@
                 cardArea.appendChild(cardElement);
                 cardElements.push(cardElement);
             });
-
             shuffleArray(deckIndices);
-
-            requestAnimationFrame(() => {
-                setTimeout(() => {
-                    positionCards(false);
-                    updateButtonStates();
-                }, 50);
-            });
+            requestAnimationFrame(() => { setTimeout(() => { positionCards(false); updateButtonStates(); }, 50); });
         }
 
 
         // --- Event Listeners & Initialization ---
         questionSetSelect.addEventListener('change', (event) => {
             const selectedSetKey = event.target.value;
-            const allDiscardStates = loadState().discardState; // Load all discard states
-            initialize(selectedSetKey, allDiscardStates); // Initialize with the new set
-            saveState(); // Save the new currentSetKey
+            const allDiscardStates = loadState().discardState;
+            initialize(selectedSetKey, allDiscardStates);
+            saveState();
         });
 
         nextBtn.addEventListener('click', flipNextCard);
@@ -1259,84 +1217,90 @@
 
 
         document.addEventListener('DOMContentLoaded', () => {
-            loadCustomSets(); // Load custom sets and populate dropdown BEFORE loading main state
-
-            const savedState = loadState(); // Load selected set and discard piles
+            loadCustomSets();
+            const savedState = loadState();
             let initialSetKey = savedState.selectedSet || 'strangers';
-
-            if (!questionSets[initialSetKey]) { // If saved set is no longer valid (e.g. deleted custom set)
-                initialSetKey = 'strangers'; // Fallback
-            }
-
-            questionSetSelect.value = initialSetKey; // Set dropdown to the determined initial set
-            // currentSetKey will be set by initialize()
+            if (!questionSets[initialSetKey]) { initialSetKey = 'strangers'; }
+            questionSetSelect.value = initialSetKey;
             initialize(initialSetKey, savedState.discardState);
         });
 
         let resizeTimer;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(() => {
-                if (cardElements.length > 0) {
-                    positionCards(false);
-                }
-            }, 150);
+            resizeTimer = setTimeout(() => { if (cardElements.length > 0) { positionCards(false); } }, 150);
         });
 
 
         // --- AI Card Generation Sidebar Logic ---
         const apiKeyInput = document.getElementById('openai-api-key');
         const cardSpecsInput = document.getElementById('card-specs');
-        const generateCardBtn = document.getElementById('generate-card-btn');
-        const generatedCardsDisplay = document.getElementById('generated-cards-display');
+        const generateCardsBtn = document.getElementById('generate-cards-btn'); // Changed ID
+        const generatedCardsContainer = document.getElementById('generated-cards-container'); // Changed ID
         const customSetNameInput = document.getElementById('custom-set-name');
-        const addGeneratedCardBtn = document.getElementById('add-generated-card-btn');
+        const addGeneratedCardsBtn = document.getElementById('add-generated-cards-btn'); // Changed ID
 
-        let lastGeneratedCardText = null;
+        // let lastGeneratedCardText = null; // Will become an array of textareas or texts
+        let generatedCardTextareas = [];
 
-        async function generateOpenAICard(apiKey, promptText) {
+
+        async function generateOpenAICards(apiKey, promptText) { // Pluralized
             const API_URL = 'https://api.openai.com/v1/chat/completions';
-
             const requestBody = {
-                model: "o4-mini",
-                messages: [
-                    {
-                        role: "system",
-                        content: "You are a helpful assistant that generates concise, thought-provoking, and engaging questions for conversation card games. Each question should be suitable for a single card and encourage deeper connection or interesting discussion. Ensure the output is ONLY the question text, without any preamble, numbering, or extra formatting like quotation marks around the question itself unless it's part of the question."
-                    },
-                    {
-                        role: "user",
-                        content: promptText
-                    }
-                ],
-                max_tokens: 70, // Increased slightly for potentially longer questions
-                temperature: 0.75, // Slightly more creative
+                model: "gpt-3.5-turbo", // Using a common model, you can change to "gpt-4-mini" or others if available/preferred
+                messages: [{
+                    role: "system",
+                    content: "You are a helpful assistant that generates 5 concise, thought-provoking, and engaging questions for a conversation card game. Each question should be suitable for a single card and encourage deeper connection or interesting discussion. Output ONLY a JSON array of 5 strings, where each string is a question. For example: [\"Question 1?\", \"Question 2?\", \"Question 3?\", \"Question 4?\", \"Question 5?\"]"
+                }, {
+                    role: "user",
+                    content: promptText
+                }],
+                max_tokens: 300, // Adjusted for 5 questions
+                temperature: 0.75,
+                response_format: { type: "json_object" } // Request JSON output
             };
 
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
                     body: JSON.stringify(requestBody)
                 });
-
                 if (!response.ok) {
                     const errorData = await response.json();
                     console.error('OpenAI API Error:', errorData);
                     throw new Error(`API Error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
                 }
-
                 const data = await response.json();
+                // The API might wrap the JSON array within a key like "questions" or directly in choices[0].message.content
+                // Adjust parsing based on actual API response structure for JSON mode.
+                // Assuming the response directly gives a parsable JSON string in choices[0].message.content
                 if (data.choices && data.choices.length > 0 && data.choices[0].message && data.choices[0].message.content) {
-                    // Sometimes GPT might still wrap in quotes, try to remove them if they are just wrapping the whole string
-                    let text = data.choices[0].message.content.trim();
-                    if (text.startsWith('"') && text.endsWith('"')) {
-                        text = text.substring(1, text.length - 1);
+                    try {
+                        const parsedContent = JSON.parse(data.choices[0].message.content);
+                        // Check if it's an array directly, or if the array is nested under a key (e.g. "questions")
+                        if (Array.isArray(parsedContent)) return parsedContent.slice(0, 5); // Ensure only 5
+                        if (parsedContent.questions && Array.isArray(parsedContent.questions)) return parsedContent.questions.slice(0,5);
+
+                        // Fallback if JSON is not in expected array format but is some other object
+                        // This part might need adjustment based on how your specific model version formats JSON output
+                        // For now, if it's not an array, we'll try to extract values if it's an object
+                        if (typeof parsedContent === 'object' && parsedContent !== null) {
+                            const questionsArray = Object.values(parsedContent);
+                            if (questionsArray.every(q => typeof q === 'string')) {
+                                return questionsArray.slice(0,5);
+                            }
+                        }
+                        console.error("OpenAI response content is not a valid JSON array of questions:", parsedContent);
+                        throw new Error("Generated content is not in the expected array format.");
+
+                    } catch (jsonError) {
+                        console.error("Error parsing JSON from OpenAI response:", jsonError, data.choices[0].message.content);
+                        // Fallback: try to split by newline if JSON fails and it's plain text lines
+                        const lines = data.choices[0].message.content.split('\n').map(q => q.trim().replace(/^"|"$/g, '').replace(/^\d+\.\s*/, '')).filter(q => q.length > 0);
+                        if(lines.length >= 5) return lines.slice(0,5);
+                        throw new Error("Could not parse questions from API response. Expected a JSON array of 5 strings.");
                     }
-                    return text;
                 } else {
                     console.error("Invalid response structure from OpenAI API:", data);
                     throw new Error("Invalid response structure from OpenAI API.");
@@ -1347,46 +1311,72 @@
             }
         }
 
-        async function handleGenerateCard() {
+
+        async function handleGenerateCards() { // Pluralized
             const apiKey = apiKeyInput.value.trim();
             const specifications = cardSpecsInput.value.trim();
 
             if (!apiKey) {
-                generatedCardsDisplay.textContent = "Error: Please enter your OpenAI API key.";
-                addGeneratedCardBtn.disabled = true;
-                return;
+                generatedCardsContainer.innerHTML = "<p>Error: Please enter your OpenAI API key.</p>";
+                addGeneratedCardsBtn.disabled = true; return;
             }
-
             if (!specifications) {
-                generatedCardsDisplay.textContent = "Error: Please enter card specifications/theme.";
-                addGeneratedCardBtn.disabled = true;
-                return;
+                generatedCardsContainer.innerHTML = "<p>Error: Please enter card specifications/theme.</p>";
+                addGeneratedCardsBtn.disabled = true; return;
             }
 
-            generateCardBtn.disabled = true;
-            addGeneratedCardBtn.disabled = true;
-            generatedCardsDisplay.textContent = "Generating card... please wait.";
-            lastGeneratedCardText = null;
+            generateCardsBtn.disabled = true;
+            addGeneratedCardsBtn.disabled = true;
+            generatedCardsContainer.innerHTML = "<p>Generating 5 cards... please wait.</p>";
+            generatedCardTextareas = []; // Clear previous
 
-            const fullPrompt = `Generate a single, concise, thought-provoking question for a conversation card game based on the following theme or idea: "${specifications}". The question should be suitable for a single card. Output ONLY the question text.`;
+            const fullPrompt = `Generate 5 concise, thought-provoking questions for a conversation card game based on the theme: "${specifications}". Return as a JSON array of 5 strings.`;
 
             try {
-                const cardText = await generateOpenAICard(apiKey, fullPrompt);
-                lastGeneratedCardText = cardText;
-                generatedCardsDisplay.innerHTML = `<strong>Generated Card:</strong><br><pre style="white-space: pre-wrap; word-wrap: break-word;">${cardText}</pre><br>Enter a new set name or select a custom set, then click "Add Generated Card to Set".`;
-                addGeneratedCardBtn.disabled = false;
+                const cardTextsArray = await generateOpenAICards(apiKey, fullPrompt);
+                generatedCardsContainer.innerHTML = ''; // Clear loading message
+
+                if (Array.isArray(cardTextsArray) && cardTextsArray.length > 0) {
+                    cardTextsArray.slice(0, 5).forEach((text, index) => { // Ensure max 5
+                        const itemDiv = document.createElement('div');
+                        itemDiv.classList.add('generated-card-item');
+                        
+                        const label = document.createElement('label');
+                        label.textContent = `Card ${index + 1}:`;
+                        label.style.display = 'block';
+                        label.style.marginBottom = '3px';
+                        label.style.fontSize = '0.8em';
+
+                        const textarea = document.createElement('textarea');
+                        textarea.classList.add('editable-card-textarea');
+                        textarea.value = text.trim();
+                        textarea.rows = 2; // Small initial size
+
+                        itemDiv.appendChild(label);
+                        itemDiv.appendChild(textarea);
+                        generatedCardsContainer.appendChild(itemDiv);
+                        generatedCardTextareas.push(textarea);
+                    });
+                    addGeneratedCardsBtn.disabled = false;
+                } else {
+                    generatedCardsContainer.innerHTML = "<p>Error: Could not generate cards or received an empty list. Please check console.</p>";
+                }
             } catch (error) {
-                generatedCardsDisplay.textContent = `Error generating card: ${error.message}`;
-                lastGeneratedCardText = null;
+                generatedCardsContainer.innerHTML = `<p>Error generating cards: ${error.message}</p>`;
             } finally {
-                generateCardBtn.disabled = false;
+                generateCardsBtn.disabled = false;
             }
         }
 
-        function handleAddGeneratedCardToSet() {
-            if (!lastGeneratedCardText) {
-                alert("Please generate a card first.");
-                return;
+        function handleAddGeneratedCardsToSet() { // Pluralized
+            if (generatedCardTextareas.length === 0) {
+                alert("Please generate cards first."); return;
+            }
+
+            const editedCardTexts = generatedCardTextareas.map(textarea => textarea.value.trim()).filter(text => text.length > 0);
+
+            if (editedCardTexts.length === 0) {
+                alert("No valid card text to add. Please ensure cards are not empty."); return;
             }
 
             const newSetNameRaw = customSetNameInput.value.trim();
@@ -1402,47 +1392,46 @@
                     questionSets[newSetKey] = [];
                     addCustomSetToDropdown(newSetKey, newSetNameRaw);
                     alert(`New set "${newSetNameRaw}" created.`);
-                    questionSetSelect.value = newSetKey;
+                    questionSetSelect.value = newSetKey; // Switch dropdown to new set
                 }
                 targetSetKey = newSetKey;
-                customSetNameInput.value = '';
+                customSetNameInput.value = ''; // Clear input after use
             } else {
+                 // If no new set name, use the currently selected set from the main dropdown
                 const selectedOption = questionSetSelect.options[questionSetSelect.selectedIndex];
                 targetSetDisplayName = selectedOption.text.replace(" (Custom)", "");
 
                 if (!targetSetKey.startsWith("custom_")) {
-                    alert("Cannot add cards to predefined sets. Please enter a name for a new custom set, or select an existing custom set from the dropdown.");
+                    alert("Cannot add cards to predefined sets. Please enter a name for a new custom set, or select an existing custom set from the main app's 'Choose Arcana' dropdown.");
                     return;
                 }
             }
-
-            if (!questionSets[targetSetKey]) {
+            
+            if (!questionSets[targetSetKey]) { // Should be created if new, but as a fallback
                 questionSets[targetSetKey] = [];
             }
 
-            questionSets[targetSetKey].push(lastGeneratedCardText);
+            editedCardTexts.forEach(text => questionSets[targetSetKey].push(text));
 
-            generatedCardsDisplay.innerHTML = `<strong>Generated Card:</strong><br><pre style="white-space: pre-wrap; word-wrap: break-word;">${lastGeneratedCardText}</pre><br><em>Card added to set: "${targetSetDisplayName}"</em>`;
-            lastGeneratedCardText = null;
-            addGeneratedCardBtn.disabled = true;
+            generatedCardsContainer.innerHTML = `<p>Added ${editedCardTexts.length} card(s) to set: "${targetSetDisplayName}". Generate more or close sidebar.</p>`;
+            generatedCardTextareas = [];
+            addGeneratedCardsBtn.disabled = true;
 
-            if (currentSetKey === targetSetKey) {
+            if (currentSetKey === targetSetKey) { // If currently viewed set is modified
                 const allDiscardStates = loadState().discardState;
-                initialize(currentSetKey, allDiscardStates);
+                initialize(currentSetKey, allDiscardStates); // Re-initialize to show new cards in deck
             }
-
             saveState(); // Saves discard states and custom sets
         }
 
-        if (generateCardBtn) {
-            generateCardBtn.addEventListener('click', handleGenerateCard);
+        if (generateCardsBtn) {
+            generateCardsBtn.addEventListener('click', handleGenerateCards);
         }
-        if (addGeneratedCardBtn) {
-            addGeneratedCardBtn.addEventListener('click', handleAddGeneratedCardToSet);
+        if (addGeneratedCardsBtn) {
+            addGeneratedCardsBtn.addEventListener('click', handleAddGeneratedCardsToSet);
         }
 
     </script>
-    <!-- Service Worker script remains the same -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
