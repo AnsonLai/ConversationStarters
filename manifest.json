@@ -1,0 +1,21 @@
+{
+  "name": "Mystic Conversation Cards",
+  "short_name": "MysticCards",
+  "description": "Spark conversations with intriguing questions.",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#EAEDED",
+  "theme_color": "#707B7C",
+  "icons": [
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
