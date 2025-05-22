@@ -75,8 +75,8 @@
         body {
             font-family: 'Lora', serif;
             display: flex;
-            justify-content: center;
-            align-items: center;
+            align-items: flex-start; /* Align items to the top */
+            justify-content: flex-start; /* Explicitly align children to the start */
             min-height: 100vh;
             /* Fallback for older browsers */
             min-height: 100dvh;
@@ -95,8 +95,8 @@
             flex-direction: column;
             align-items: center;
             gap: 15px;
-            width: 100%;
-            max-width: 1200px;
+            /* width: 100%; Removed to allow flex-grow to manage width */
+            /* max-width: 1200px; /* May need adjustment - Removed to prevent overflow with sidebar */
             padding: 15px 20px;
             box-sizing: border-box;
             height: 100dvh;
@@ -104,6 +104,76 @@
             overflow-y: auto;
             /* Allow scrolling within app-container if content overflows */
             justify-content: space-between;
+            flex-grow: 1; /* Allow app-container to take available space */
+        }
+
+        .ai-sidebar {
+            width: 300px;
+            padding: 15px;
+            border-left: 1px solid var(--theme-card-border-color, #ccc);
+            background-color: var(--theme-page-background, #f9f9f9);
+            height: 100dvh;
+            overflow-y: auto;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Spacing between elements in the sidebar */
+        }
+
+        .ai-sidebar h3 {
+            font-family: 'Cinzel', serif;
+            color: var(--theme-primary-darker, #333);
+            margin-top: 0;
+            font-size: 1.2em;
+        }
+
+        .ai-sidebar label {
+            font-size: 0.85em;
+            color: var(--theme-settings-text-color, #555);
+        }
+
+        .ai-sidebar input[type="password"],
+        .ai-sidebar textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--theme-select-border-color, #ccc);
+            border-radius: 4px;
+            font-family: 'Lora', serif;
+            font-size: 0.9em;
+            box-sizing: border-box;
+            background-color: var(--theme-select-background, #fff);
+            color: var(--theme-select-text-color, #333);
+        }
+
+        .ai-sidebar textarea {
+            resize: vertical; /* Allow vertical resize only */
+        }
+
+        .ai-sidebar button {
+            padding: 10px 15px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.9em;
+            background-color: var(--theme-button-background, #566573);
+            color: var(--theme-button-text-color, #fff);
+            border: 1px solid var(--theme-button-border-color, #707B7C);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .ai-sidebar button:hover {
+            background-color: var(--theme-button-hover-background, #707B7C);
+        }
+
+        .ai-sidebar #generated-cards-display {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px dashed var(--theme-pile-border-color, #ddd);
+            border-radius: 4px;
+            min-height: 50px;
+            font-size: 0.85em;
+            background-color: rgba(0,0,0,0.02); /* Subtle background */
+            white-space: pre-wrap; /* To respect newlines in generated text */
         }
 
         .settings {
@@ -390,6 +460,16 @@
             <button id="next-btn" title="Reveal Next Fate">Next</button>
             <button id="shuffle-btn" title="Shuffle Unseen Fates">Shuffle</button>
         </div>
+    </div>
+
+    <div class="ai-sidebar">
+        <h3>Generate Custom Cards</h3>
+        <label for="openai-api-key">OpenAI API Key:</label>
+        <input type="password" id="openai-api-key" placeholder="Enter your API key">
+        <label for="card-specs">Card Specifications:</label>
+        <textarea id="card-specs" rows="5" placeholder="Describe the card you want to generate..."></textarea>
+        <button id="generate-card-btn">Generate Card</button>
+        <div id="generated-cards-display"></div>
     </div>
 
     <script>
@@ -1129,6 +1209,39 @@
         });
 
     </script>
+
+    <script>
+        // --- AI Card Generation Sidebar Logic ---
+        const apiKeyInput = document.getElementById('openai-api-key');
+        const cardSpecsInput = document.getElementById('card-specs');
+        const generateCardBtn = document.getElementById('generate-card-btn');
+        const generatedCardsDisplay = document.getElementById('generated-cards-display');
+
+        function handleGenerateCard() {
+            const apiKey = apiKeyInput.value.trim();
+            const specifications = cardSpecsInput.value.trim();
+
+            if (!apiKey) {
+                generatedCardsDisplay.textContent = "Error: Please enter your OpenAI API key.";
+                return;
+            }
+
+            if (!specifications) {
+                generatedCardsDisplay.textContent = "Error: Please enter card specifications.";
+                return;
+            }
+
+            // Placeholder for actual API call
+            generatedCardsDisplay.textContent = `Generated Card (Simulated):\nPrompt: "${specifications}"\n(Note: This is a placeholder. API key was present.)`;
+        }
+
+        if (generateCardBtn) { // Ensure button exists before adding listener
+            generateCardBtn.addEventListener('click', handleGenerateCard);
+        } else {
+            console.error("Error: Could not find the 'generate-card-btn' element.");
+        }
+    </script>
+
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
