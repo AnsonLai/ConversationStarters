@@ -1244,7 +1244,7 @@
         async function generateOpenAICards(apiKey, promptText) { // Pluralized
             const API_URL = 'https://api.openai.com/v1/chat/completions';
             const requestBody = {
-                model: "o4-mini", // Using a common model, you can change to "gpt-4-mini" or others if available/preferred
+                model: "gpt-4.1-mini", // Using a common model, you can change to "gpt-4-mini" or others if available/preferred
                 messages: [{
                     role: "system",
                     content: "You are a helpful assistant that generates 5 concise, thought-provoking, and engaging questions for a conversation card game. Each question should be suitable for a single card and encourage deeper connection or interesting discussion. The best conversation starters are open-ended questions of personal relevance which encourage a bit of storytelling. Output ONLY a JSON array of 5 strings, where each string is a question. For example: [\"Question 1?\", \"Question 2?\", \"Question 3?\", \"Question 4?\", \"Question 5?\"]"
@@ -1252,7 +1252,7 @@
                     role: "user",
                     content: promptText
                 }],
-                max_completion_tokens: 350, // Adjusted for 5 questions
+                max_completion_tokens: 400, // Adjusted for 5 questions
                 temperature: 1,
                 response_format: { type: "json_object" } // Request JSON output
             };
