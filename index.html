@@ -125,19 +125,16 @@
             right: 0; /* Slide in */
         }
 
-        .ai-sidebar {
-            /* width: 100%; Removed, as wrapper controls width */
-            padding: 20px; /* Increased padding */
-            /* border-left: 1px solid var(--theme-card-border-color, #ccc); Removed, wrapper has border */
-            /* background-color: var(--theme-page-background, #f9f9f9); Removed, wrapper has background */
-            /* height: 100dvh; Removed, flex child will fill wrapper */
-            overflow-y: auto;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            gap: 12px; /* Spacing between elements in the sidebar */
-            flex-grow: 1; /* Allow ai-sidebar to fill the wrapper */
-        }
+.ai-sidebar {
+    padding: 20px;
+    overflow-y: auto;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex-grow: 1;
+    min-height: 0; /* ADD THIS LINE */
+}
 
         .ai-sidebar h3 {
             font-family: 'Cinzel', serif;
@@ -1247,10 +1244,10 @@
         async function generateOpenAICards(apiKey, promptText) { // Pluralized
             const API_URL = 'https://api.openai.com/v1/chat/completions';
             const requestBody = {
-                model: "gpt-3.5-turbo", // Using a common model, you can change to "gpt-4-mini" or others if available/preferred
+                model: "o4-mini", // Using a common model, you can change to "gpt-4-mini" or others if available/preferred
                 messages: [{
                     role: "system",
-                    content: "You are a helpful assistant that generates 5 concise, thought-provoking, and engaging questions for a conversation card game. Each question should be suitable for a single card and encourage deeper connection or interesting discussion. Output ONLY a JSON array of 5 strings, where each string is a question. For example: [\"Question 1?\", \"Question 2?\", \"Question 3?\", \"Question 4?\", \"Question 5?\"]"
+                    content: "You are a helpful assistant that generates 5 concise, thought-provoking, and engaging questions for a conversation card game. Each question should be suitable for a single card and encourage deeper connection or interesting discussion. The best conversation starters are open-ended questions of personal relevance which encourage a bit of storytelling. Output ONLY a JSON array of 5 strings, where each string is a question. For example: [\"Question 1?\", \"Question 2?\", \"Question 3?\", \"Question 4?\", \"Question 5?\"]"
                 }, {
                     role: "user",
                     content: promptText
