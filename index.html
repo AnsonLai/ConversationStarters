@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mystic Conversation Cards</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap"
+        rel="stylesheet">
+    <meta name="theme-color" content="#707B7C">
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MysticCards">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <style>
+        :root {
+            /* Default theme (Strangers - Grey) will be set by JS on load */
+            --theme-primary: '#707B7C';
+            --theme-primary-darker: '#566573';
+            --theme-secondary: '#FDFEFE';
+            --theme-page-background: '#EAEDED';
+            --theme-card-background: '#FDFEFE';
+            --theme-card-text-color: '#2C3E50';
+            --theme-card-border-color: '#707B7C';
+
+            --theme-pile-border-color: var(--theme-primary-darker);
+            --theme-pile-label-color: var(--theme-primary);
+
+            --theme-button-background: var(--theme-primary-darker);
+            --theme-button-text-color: var(--theme-secondary);
+            --theme-button-border-color: var(--theme-primary);
+            --theme-button-hover-background: var(--theme-primary);
+            --theme-button-hover-text-color: var(--theme-secondary);
+            --theme-button-disabled-background: #BDC3C7;
+            --theme-button-disabled-text-color: #7F8C8D;
+            --theme-button-disabled-border-color: #AAB7B8;
+
+            --theme-settings-text-color: var(--theme-primary-darker);
+            --theme-select-background: var(--theme-secondary);
+            --theme-select-text-color: var(--theme-primary-darker);
+            --theme-select-border-color: var(--theme-primary);
+            --theme-select-arrow-color: var(--theme-primary-darker);
+
+            /* Card Dimensions: Wider and less tall */
+            --card-width: 260px;
+            --card-height: 190px;
+            --card-border-radius: 8px;
+            --animation-speed: 0.6;
+            --pile-gap: 40px;
+            /* Vertical gap between pile DIVS */
+            --stack-offset-y: 2px;
+            /* Controls vertical stacking distance */
+            --stack-offset-x-jitter: 6px;
+            /* Max horizontal jitter for messiness */
+            --stack-rotation-jitter: 3deg;
+            /* Max rotation jitter for messiness */
+            --card-visible-thickness: 1px;
+            /* How much each card in a stack 'offsets' the next one vertically for visual stacking. Controls density. */
+            --stack-max-random-x-offset: 5px;
+            /* Max horizontal random shift from pile center (e.g., -5px to +5px). Was effectively STACK_OFFSET_X_JITTER. */
+            --stack-max-random-y-offset: 3px;
+            /* Max vertical random shift from a card's base stacked position (e.g., -3px to +3px). */
+            --stack-max-random-rotation: 2.5deg;
+            /* Max random rotation (e.g., -2.5deg to +2.5deg). Was effectively STACK_ROTATION_JITTER. */
+
+            --theme-card-back-pattern-color: var(--theme-primary-darker);
+            --theme-card-back-bg-color: var(--theme-card-background);
+            --theme-card-back-symbol: "✧";
+            --theme-card-back-symbol-color: var(--theme-primary);
+            --theme-card-back-symbol-shadow-color: var(--theme-primary-darker);
+
+            --sidebar-width: 320px;
+            /* Sidebar width */
+        }
+
+        body {
+            font-family: 'Lora', serif;
+            display: flex;
+            /* Changed for sidebar layout */
+            min-height: 100vh;
+            min-height: 100dvh;
+            background-color: var(--theme-page-background);
+            color: var(--theme-card-text-color);
+            margin: 0;
+            overflow-x: hidden;
+            /* Prevent body scroll due to sidebar */
+            transition: background-color 0.3s ease;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 20px;
+            box-sizing: border-box;
+            height: 100dvh;
+            overflow-y: auto;
+            justify-content: space-between;
+            flex-grow: 1;
+            transition: margin-right 0.3s ease-in-out;
+            /* For sidebar push effect */
+        }
+
+        .sidebar-open .app-container {
+            /* When sidebar is open, you might want to adjust the main content if it's not fixed */
+            /* Example: margin-right: var(--sidebar-width); */
+        }
+
+
+        .sidebar-wrapper {
+            width: var(--sidebar-width);
+            position: fixed;
+            /* Or absolute if body is relative */
+            top: 0;
+            right: calc(-1 * var(--sidebar-width));
+            /* Start off-screen */
+            height: 100dvh;
+            background-color: var(--theme-page-background, #f0f0f0);
+            border-left: 1px solid var(--theme-card-border-color, #ccc);
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease-in-out;
+            z-index: 1000;
+            /* Ensure sidebar is on top */
+            display: flex;
+            /* To make ai-sidebar fill it */
+            flex-direction: column;
+        }
+
+        .sidebar-wrapper.open {
+            right: 0;
+            /* Slide in */
+        }
+
+        .ai-sidebar {
+            padding: 20px;
+            overflow-y: auto;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex-grow: 1;
+            min-height: 0;
+            /* ADD THIS LINE */
+        }
+
+        .ai-sidebar h3 {
+            font-family: 'Cinzel', serif;
+            color: var(--theme-primary-darker, #333);
+            margin-top: 0;
+            margin-bottom: 10px;
+            /* Added margin */
+            font-size: 1.3em;
+            /* Slightly larger */
+            text-align: center;
+        }
+
+        .ai-sidebar label {
+            font-size: 0.9em;
+            /* Slightly larger */
+            color: var(--theme-settings-text-color, #555);
+            margin-bottom: -5px;
+            /* Reduce space before input */
+        }
+
+        .ai-sidebar input[type="password"],
+        .ai-sidebar input[type="text"],
+        .ai-sidebar textarea {
+            width: 100%;
+            padding: 10px;
+            /* Increased padding */
+            border: 1px solid var(--theme-select-border-color, #ccc);
+            border-radius: 5px;
+            /* Slightly more rounded */
+            font-family: 'Lora', serif;
+            font-size: 0.9em;
+            box-sizing: border-box;
+            background-color: var(--theme-select-background, #fff);
+            color: var(--theme-select-text-color, #333);
+        }
+
+        .ai-sidebar textarea {
+            resize: vertical;
+            min-height: 80px;
+            /* Min height for spec textarea */
+        }
+
+        .ai-sidebar .editable-card-textarea {
+            min-height: 60px;
+            /* Min height for generated card textareas */
+            margin-bottom: 5px;
+        }
+
+
+        .ai-sidebar button {
+            padding: 12px 18px;
+            /* Increased padding */
+            font-family: 'Cinzel', serif;
+            font-size: 0.95em;
+            /* Slightly larger */
+            background-color: var(--theme-button-background, #566573);
+            color: var(--theme-button-text-color, #fff);
+            border: 1px solid var(--theme-button-border-color, #707B7C);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-top: 5px;
+            /* Add some top margin */
+        }
+
+        .ai-sidebar button:hover:not(:disabled) {
+            background-color: var(--theme-button-hover-background, #707B7C);
+        }
+
+        .ai-sidebar button:disabled {
+            background-color: var(--theme-button-disabled-background);
+            color: var(--theme-button-disabled-text-color);
+            cursor: not-allowed;
+        }
+
+
+        .ai-sidebar #generated-cards-container {
+            /* Renamed from generated-cards-display */
+            margin-top: 15px;
+            padding: 10px;
+            border: 1px dashed var(--theme-pile-border-color, #ddd);
+            border-radius: 4px;
+            min-height: 100px;
+            /* Adjusted min-height */
+            font-size: 0.85em;
+            background-color: rgba(0, 0, 0, 0.02);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .generated-card-item {
+            border: 1px solid var(--theme-select-border-color);
+            padding: 8px;
+            border-radius: 4px;
+            background-color: var(--theme-card-background);
+        }
+
+        .generated-card-item textarea {
+            width: 100%;
+            box-sizing: border-box;
+            min-height: 50px;
+            font-size: 0.9em;
+            border: 1px solid #eee;
+            /* Lighter border for textarea inside item */
+        }
+
+
+        .header-controls {
+            display: flex;
+            justify-content: space-between;
+            /* Aligns items to ends */
+            align-items: center;
+            width: 100%;
+            max-width: 450px;
+            /* Max width for the whole header area */
+            padding: 0 10px;
+            /* Padding for hamburger spacing */
+            box-sizing: border-box;
+        }
+
+        .settings {
+            /* margin-bottom: 10px; Removed, handled by app-container gap */
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: rgba(0, 0, 0, 0.05);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--theme-select-border-color);
+            /* width: 100%; Removed, flex-grow will handle */
+            /* max-width: 350px; Let header-controls manage max-width */
+            box-sizing: border-box;
+            flex-grow: 1;
+            /* Allow settings to take available space */
+            flex-shrink: 1;
+            /* Allow shrinking if needed */
+        }
+
+        .hamburger-menu {
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px 10px;
+            background: none;
+            border: none;
+            color: var(--theme-primary-darker);
+            order: -1;
+            /* Place hamburger before settings on left */
+            margin-right: 10px;
+            /* Space between hamburger and settings */
+        }
+
+        .hamburger-menu:hover {
+            color: var(--theme-primary);
+        }
+
+
+        .settings label {
+            flex-shrink: 0;
+            font-size: 0.85em;
+        }
+
+        .settings select {
+            flex-grow: 1;
+            font-size: 0.85em;
+        }
+
+
+        .settings select {
+            padding: 6px 10px;
+            border-radius: 5px;
+            border: 1px solid var(--theme-select-border-color);
+            font-family: 'Lora', serif;
+            background-color: var(--theme-select-background);
+            color: var(--theme-select-text-color);
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='var(--theme-select-arrow-color-svg-encoded)' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 6px center;
+            padding-right: 25px;
+        }
+
+        .settings select:focus {
+            outline: 1px solid var(--theme-primary);
+            box-shadow: 0 0 4px var(--theme-primary);
+        }
+
+        .card-area {
+            position: relative;
+            width: 100%;
+            min-height: calc(var(--card-height) * 2 + var(--pile-gap) + 70px);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
+            margin: 5px 0;
+        }
+
+        .deck-pile,
+        .discard-pile {
+            width: var(--card-width);
+            height: var(--card-height);
+            border: 2px dashed var(--theme-pile-border-color);
+            border-radius: var(--card-border-radius);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.8em;
+            color: var(--theme-primary-darker);
+            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.15);
+            position: relative;
+            z-index: 1;
+            flex-shrink: 0;
+        }
+
+        .deck-pile {
+            /* z-index is already 1, cards will have higher z-index */
+        }
+
+        .discard-pile {
+            margin-top: var(--pile-gap);
+            /* z-index is already 1 */
+        }
+
+        .deck-pile::before {
+            content: attr(data-pile-label);
+            position: absolute;
+            top: -28px;
+            width: 100%;
+            text-align: center;
+            font-family: 'Cinzel', serif;
+            font-size: 0.85em;
+            color: var(--theme-pile-label-color);
+            letter-spacing: 0.5px;
+        }
+
+        .discard-pile::before {
+            content: attr(data-pile-label);
+            position: absolute;
+            bottom: -28px;
+            width: 100%;
+            text-align: center;
+            font-family: 'Cinzel', serif;
+            font-size: 0.85em;
+            color: var(--theme-pile-label-color);
+            letter-spacing: 0.5px;
+        }
+
+
+        .card {
+            width: var(--card-width);
+            height: var(--card-height);
+            position: absolute;
+            cursor: default;
+            transform-style: preserve-3d;
+            transition: box-shadow 0.3s ease;
+            border-radius: var(--card-border-radius);
+            border: 1.5px solid var(--theme-card-border-color);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1), 0 0 8px var(--theme-primary-shadow, rgba(0, 0, 0, 0.02));
+            left: 0;
+            top: 0;
+            will-change: transform;
+            box-sizing: border-box;
+        }
+
+        .card:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15), 0 0 15px var(--theme-primary-shadow-hover, rgba(0, 0, 0, 0.05));
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            -moz-backface-visibility: hidden;
+            border-radius: var(--card-border-radius);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .card-back {
+            background-color: var(--theme-card-back-bg-color);
+            background-image:
+                linear-gradient(135deg, var(--theme-card-back-pattern-color) 10%, transparent 10%),
+                linear-gradient(225deg, var(--theme-card-back-pattern-color) 10%, transparent 10%),
+                linear-gradient(45deg, var(--theme-card-back-pattern-color) 10%, transparent 10%),
+                linear-gradient(315deg, var(--theme-card-back-pattern-color) 10%, var(--theme-card-back-bg-color) 10%);
+            background-size: 18px 18px;
+            transform: translateZ(0.5px);
+        }
+
+        .card-back.card-style-0 {
+            /* Default Diamond Pattern */
+            /* Inherits base styles, uses default variables */
+        }
+
+        .card-back.card-style-1 {
+            /* "Cosmos" Pattern */
+            background-image:
+                radial-gradient(var(--theme-card-back-pattern-color) 1px, transparent 1px),
+                radial-gradient(var(--theme-card-back-pattern-color) 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            --theme-card-back-symbol: "☾";
+        }
+
+        .card-back.card-style-2 {
+            /* "Sunburst" Pattern */
+            background-image: repeating-radial-gradient(circle at center,
+                    transparent 0,
+                    transparent 6px,
+                    var(--theme-card-back-pattern-color) 6px,
+                    var(--theme-card-back-pattern-color) 7px);
+            background-size: 100% 100%;
+            --theme-card-back-symbol: "✺";
+        }
+
+        .card-back::after {
+            content: var(--theme-card-back-symbol);
+            font-size: 50px;
+            color: var(--theme-card-back-symbol-color);
+            opacity: 0.6;
+            position: absolute;
+            text-shadow: 0 0 6px var(--theme-card-back-symbol-shadow-color);
+        }
+
+        .card-front {
+            background-color: var(--theme-card-background);
+            color: var(--theme-card-text-color);
+            transform: rotateY(180deg) translateZ(0.5px);
+            padding: 15px;
+            font-size: 0.9em;
+            line-height: 1.4;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-front::before,
+        .card-front::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-color: var(--theme-primary);
+            border-style: solid;
+            opacity: 0.6;
+        }
+
+        .card-front::before {
+            top: 6px;
+            left: 6px;
+            border-width: 1.5px 0 0 1.5px;
+        }
+
+        .card-front::after {
+            bottom: 6px;
+            right: 6px;
+            border-width: 0 1.5px 1.5px 0;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            justify-content: center;
+            padding-bottom: 10px;
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.9em;
+            letter-spacing: 0.8px;
+            cursor: pointer;
+            border: 1.5px solid var(--theme-button-border-color);
+            border-radius: 6px;
+            background-color: var(--theme-button-background);
+            color: var(--theme-button-text-color);
+            transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+            box-shadow: 0 1.5px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        button:hover:not(:disabled) {
+            background-color: var(--theme-button-hover-background);
+            color: var(--theme-button-hover-text-color);
+            box-shadow: 0 2.5px 5px rgba(0, 0, 0, 0.15), 0 0 6px var(--theme-button-hover-background);
+            transform: translateY(-1px);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0px);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        button:disabled {
+            background-color: var(--theme-button-disabled-background);
+            color: var(--theme-button-disabled-text-color);
+            border-color: var(--theme-button-disabled-border-color);
+            cursor: not-allowed;
+            opacity: 0.65;
+            box-shadow: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div class="header-controls">
+            <button class="hamburger-menu" id="hamburger-btn" title="Toggle Custom Card Generator">&#9776;</button>
+            <div class="settings">
+                <label for="question-set-select">Choose:</label>
+                <select id="question-set-select">
+                    <option value="strangers">Encounters (Strangers)</option>
+                    <option value="acquaintances">Whispers (Acquaintances)</option>
+                    <option value="friends">Revelations (Friends)</option>
+                    <option value="date_night">Destiny (Date Night)</option>
+                    <option value="lovers">Embers (Lovers)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card-area">
+            <div class="deck-pile" data-pile-label="Unseen Fates"></div>
+            <div class="discard-pile" data-pile-label="Revealed Paths"></div>
+        </div>
+
+        <div class="controls">
+            <button id="prev-btn" title="Recall Previous Path">Previous</button>
+            <button id="next-btn" title="Reveal Next Fate">Next</button>
+            <button id="shuffle-btn" title="Shuffle Unseen Fates">Shuffle</button>
+        </div>
+    </div>
+
+    <div class="sidebar-wrapper" id="ai-sidebar-wrapper">
+        <div class="ai-sidebar">
+            <h3>Generate Custom Cards</h3>
+            <label for="openai-api-key">OpenAI API Key:</label>
+            <input type="password" id="openai-api-key" placeholder="Enter your API key">
+
+            <label for="card-specs">Card Specifications/Theme (for 5 cards):</label>
+            <textarea id="card-specs" rows="3"
+                placeholder="e.g., 'Questions about childhood dreams' or 'Spicy questions for couples'"></textarea>
+            <button id="generate-cards-btn">Generate 5 Cards</button>
+            <div id="generated-cards-container" style="min-height: 150px; margin-bottom:10px;">
+                <p>Generated cards will appear here for editing.</p>
+            </div>
+
+            <label for="custom-set-name">New Set Name (or select custom set in main app):</label>
+            <input type="text" id="custom-set-name" placeholder="e.g., My Custom Questions">
+            <button id="add-generated-cards-btn" disabled>Add Generated Cards to Set</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Theme Definitions ---
+        const themes = { // Theme definitions remain the same as previous version
+            strangers: {
+                styleIndex: 0,
+                '--theme-primary': '#707B7C',
+                '--theme-primary-darker': '#566573',
+                '--theme-secondary': '#FDFEFE',
+                '--theme-page-background': '#EAEDED',
+                '--theme-card-background': '#FDFEFE',
+                '--theme-card-text-color': '#2C3E50',
+                '--theme-card-border-color': '#707B7C',
+                '--theme-pile-border-color': '#99A3A4',
+                '--theme-pile-label-color': '#566573',
+                '--theme-button-background': '#566573',
+                '--theme-button-text-color': '#FDFEFE',
+                '--theme-button-border-color': '#707B7C',
+                '--theme-button-hover-background': '#707B7C',
+                '--theme-button-hover-text-color': '#FDFEFE',
+                '--theme-button-disabled-background': '#BDC3C7',
+                '--theme-button-disabled-text-color': '#7F8C8D',
+                '--theme-button-disabled-border-color': '#AAB7B8',
+                '--theme-settings-text-color': '#566573',
+                '--theme-select-background': '#FDFEFE',
+                '--theme-select-text-color': '#2C3E50',
+                '--theme-select-border-color': '#707B7C',
+                '--theme-select-arrow-color': '#566573',
+                '--theme-primary-shadow': 'rgba(112, 123, 124, 0.1)',
+                '--theme-primary-shadow-hover': 'rgba(112, 123, 124, 0.2)',
+                '--theme-card-back-pattern-color': '#A0A0A0',
+                '--theme-card-back-bg-color': '#D0D0D0',
+                '--theme-card-back-symbol': '"✧"',
+                '--theme-card-back-symbol-color': '#606060',
+                '--theme-card-back-symbol-shadow-color': '#333333',
+            },
+            acquaintances: {
+                styleIndex: 1,
+                '--theme-primary': '#5DADE2',
+                '--theme-primary-darker': '#2E86C1',
+                '--theme-secondary': '#FFFFFF',
+                '--theme-page-background': '#F4F6F7',
+                '--theme-card-background': '#FFFFFF',
+                '--theme-card-text-color': '#1A5276',
+                '--theme-card-border-color': '#2E86C1',
+                '--theme-pile-border-color': '#2E86C1',
+                '--theme-pile-label-color': '#2E86C1',
+                '--theme-button-background': '#2E86C1',
+                '--theme-button-text-color': '#FFFFFF',
+                '--theme-button-border-color': '#5DADE2',
+                '--theme-button-hover-background': '#5DADE2',
+                '--theme-button-hover-text-color': '#1A5276',
+                '--theme-button-disabled-background': '#AAB7B8',
+                '--theme-button-disabled-text-color': '#E5E8E8',
+                '--theme-button-disabled-border-color': '#909A9C',
+                '--theme-settings-text-color': '#1A5276',
+                '--theme-select-background': '#FFFFFF',
+                '--theme-select-text-color': '#1A5276',
+                '--theme-select-border-color': '#2E86C1',
+                '--theme-select-arrow-color': '#1A5276',
+                '--theme-primary-shadow': 'rgba(46, 134, 193, 0.1)',
+                '--theme-primary-shadow-hover': 'rgba(46, 134, 193, 0.2)',
+                '--theme-card-back-pattern-color': '#2E86C1',
+                '--theme-card-back-bg-color': '#FFFFFF',
+                '--theme-card-back-symbol': '"✧"',
+                '--theme-card-back-symbol-color': '#2E86C1',
+                '--theme-card-back-symbol-shadow-color': '#1A5276',
+            },
+            friends: {
+                styleIndex: 2,
+                '--theme-primary': '#2ECC71',
+                '--theme-primary-darker': '#27AE60',
+                '--theme-secondary': '#FDFEFE',
+                '--theme-page-background': '#E8F8F5',
+                '--theme-card-background': '#FDFEFE',
+                '--theme-card-text-color': '#1D8348',
+                '--theme-card-border-color': '#27AE60',
+                '--theme-pile-border-color': '#27AE60',
+                '--theme-pile-label-color': '#2ECC71',
+                '--theme-button-background': '#27AE60',
+                '--theme-button-text-color': '#FDFEFE',
+                '--theme-button-border-color': '#2ECC71',
+                '--theme-button-hover-background': '#2ECC71',
+                '--theme-button-hover-text-color': '#1D8348',
+                '--theme-button-disabled-background': '#A9DFBF',
+                '--theme-button-disabled-text-color': '#7DCEA0',
+                '--theme-button-disabled-border-color': '#A9DFBF',
+                '--theme-settings-text-color': '#1D8348',
+                '--theme-select-background': '#FDFEFE',
+                '--theme-select-text-color': '#1D8348',
+                '--theme-select-border-color': '#27AE60',
+                '--theme-select-arrow-color': '#1D8348',
+                '--theme-primary-shadow': 'rgba(46, 204, 113, 0.15)',
+                '--theme-primary-shadow-hover': 'rgba(46, 204, 113, 0.25)',
+                '--theme-card-back-pattern-color': '#27AE60',
+                '--theme-card-back-bg-color': '#FDFEFE',
+                '--theme-card-back-symbol': '"✧"',
+                '--theme-card-back-symbol-color': '#2ECC71',
+                '--theme-card-back-symbol-shadow-color': '#1D8348',
+            },
+            date_night: {
+                styleIndex: 1,
+                '--theme-primary': '#D4AF37',
+                '--theme-primary-darker': '#B8860B',
+                '--theme-secondary': '#121212',
+                '--theme-page-background': '#1E1E1E',
+                '--theme-card-background': '#121212',
+                '--theme-card-text-color': '#E0C9A6',
+                '--theme-card-border-color': '#A88532',
+                '--theme-pile-border-color': '#A88532',
+                '--theme-pile-label-color': '#D4AF37',
+                '--theme-button-background': '#121212',
+                '--theme-button-text-color': '#D4AF37',
+                '--theme-button-border-color': '#A88532',
+                '--theme-button-hover-background': '#B8860B',
+                '--theme-button-hover-text-color': '#121212',
+                '--theme-button-disabled-background': '#2a2a2a',
+                '--theme-button-disabled-text-color': '#555555',
+                '--theme-button-disabled-border-color': '#444444',
+                '--theme-settings-text-color': '#D4AF37',
+                '--theme-select-background': '#121212',
+                '--theme-select-text-color': '#E0C9A6',
+                '--theme-select-border-color': '#A88532',
+                '--theme-select-arrow-color': '#D4AF37',
+                '--theme-primary-shadow': 'rgba(212, 175, 55, 0.1)',
+                '--theme-primary-shadow-hover': 'rgba(212, 175, 55, 0.2)',
+                '--theme-card-back-pattern-color': 'var(--theme-primary)',
+                '--theme-card-back-bg-color': 'var(--theme-card-background)',
+                '--theme-card-back-symbol': '"✧"',
+                '--theme-card-back-symbol-color': 'var(--theme-primary)',
+                '--theme-card-back-symbol-shadow-color': 'var(--theme-primary-darker)',
+            },
+            lovers: {
+                styleIndex: 2,
+                '--theme-primary': '#E53E3E',
+                '--theme-primary-darker': '#C53030',
+                '--theme-secondary': '#121212',
+                '--theme-page-background': '#1A1A1A',
+                '--theme-card-background': '#121212',
+                '--theme-card-text-color': '#FEB2B2',
+                '--theme-card-border-color': '#C53030',
+                '--theme-pile-border-color': '#C53030',
+                '--theme-pile-label-color': '#E53E3E',
+                '--theme-button-background': '#121212',
+                '--theme-button-text-color': '#E53E3E',
+                '--theme-button-border-color': '#C53030',
+                '--theme-button-hover-background': '#C53030',
+                '--theme-button-hover-text-color': '#121212',
+                '--theme-button-disabled-background': '#2a2a2a',
+                '--theme-button-disabled-text-color': '#555555',
+                '--theme-button-disabled-border-color': '#444444',
+                '--theme-settings-text-color': '#E53E3E',
+                '--theme-select-background': '#121212',
+                '--theme-select-text-color': '#FEB2B2',
+                '--theme-select-border-color': '#C53030',
+                '--theme-select-arrow-color': '#E53E3E',
+                '--theme-primary-shadow': 'rgba(229, 62, 62, 0.1)',
+                '--theme-primary-shadow-hover': 'rgba(229, 62, 62, 0.2)',
+                '--theme-card-back-pattern-color': 'var(--theme-primary-darker)',
+                '--theme-card-back-bg-color': 'var(--theme-card-background)',
+                '--theme-card-back-symbol': '"✧"',
+                '--theme-card-back-symbol-color': 'var(--theme-primary)',
+                '--theme-card-back-symbol-shadow-color': '#A52A2A',
+            }
+        };
+
+        function applyTheme(themeName) {
+            const selectedTheme = themes[themeName] || themes.strangers;
+            for (const [key, value] of Object.entries(selectedTheme)) {
+                document.documentElement.style.setProperty(key, value);
+            }
+            const arrowColor = selectedTheme['--theme-select-arrow-color'] || '#000000';
+            document.documentElement.style.setProperty('--theme-select-arrow-color-svg-encoded', encodeURIComponent(arrowColor));
+        }
+
+        let questionSets = {
+            "strangers": [
+                "What hobby or interest lights you up that most people wouldn't guess about you?",
+                "What's the best book or show you've enjoyed recently?",
+                "Where do you feel most at home or at peace?",
+                "What are you currently working toward or excited about?",
+                "If you could travel anywhere tomorrow, where would you go and why?",
+                "What small thing reliably makes your day better?",
+                "What's something you're curious about but haven't explored yet?",
+                "What's a skill you'd like to learn if you had the time?",
+                "How do you recharge after a busy day or week?",
+                "What's something you've changed your mind about in the last few years?",
+                "What's a tiny decision you made that unexpectedly changed your life?",
+                "What's a question you've never found a satisfying answer to?",
+                "What's something you find beautiful that others might overlook?",
+                "If your life had a theme song playing in the background, what would it be?",
+                "What's a small act of kindness from a stranger that you still remember?",
+                "What's something you're looking forward to that's getting you through this week?",
+                "What's a piece of wisdom you've gathered that you wish you'd learned sooner?",
+                "What part of your day do you most look forward to?",
+                "What's a story behind an object you carry with you?",
+                "What's a seemingly mundane job that you think would actually be fascinating?",
+                "What's something that made you laugh recently?",
+                "What's a question you'd ask someone from 100 years in the future?",
+                "What's something you know or believe that most people disagree with?",
+                "What's a meaningful coincidence you've experienced?",
+                "What's the most interesting thing you've learned in the past month?"
+            ],
+            "acquaintances": [
+                "What's something you're genuinely proud of that you rarely get to talk about?",
+                "What activity do you enjoy and what makes it special to you?",
+                "What's a misconception people often have about your job or studies?",
+                "What's the best advice someone has given you that you actually use?",
+                "What's a small luxury or treat you never feel guilty about?",
+                "If you could instantly master any skill, what would you choose?",
+                "What's something you've recently discovered that you now love?",
+                "What tradition or habit brings structure to your life?",
+                "What's a question you wish people would ask you more often?",
+                "What's an interest you're currently exploring that you'd love to have some company with?",
+                "What's something you learned about yourself during a challenging time?",
+                "What's a seemingly insignificant memory that brings you unexpected joy?",
+                "What's a subject you know nothing about but find intriguing?",
+                "What's a hidden gem in this area that more people should appreciate?",
+                "What's something people are surprised to learn about you after knowing you a while?",
+                "What's an opinion you hold that's evolved significantly over time?",
+                "What's a creative project you'd start if you had unlimited resources?",
+                "What's a skill from your past that you'd like to revive or improve?",
+                "What's something you're still figuring out about yourself?",
+                "What's a conversation topic you find yourself returning to with different people?",
+                "What's a small change you've made that improved your daily life?",
+                "What's a documentary or podcast that changed your perspective on something?",
+                "What's a tradition you'd like to start or revive with people in your life?",
+                "What's a question that helps you really understand someone else?",
+                "What's something meaningful you've learned from someone younger than you?"
+            ],
+            "friends": [
+                "What's something difficult you're working through right now that you could use support with?",
+                "What's a belief you held strongly that you've since changed your mind about?",
+                "What aspect of your personality are you currently trying to improve?",
+                "When did you last feel truly proud of yourself?",
+                "What dream have you put on hold that you still think about?",
+                "What's something you're afraid to pursue even though you want to?",
+                "Was there ever a time you wanted my help but hesitated to ask?",
+                "What part of your life feels most authentic to who you really are?",
+                "What do you need more of in your life right now?",
+                "What vulnerability is hardest for you to show others?",
+                "What's an unspoken concern that's been lingering in your mind lately?",
+                "When have you felt most understood by someone in your life?",
+                "What's a failure you've experienced that ultimately led to growth?",
+                "What's something you're still healing from that most people don't see?",
+                "What's a compliment you've received that actually meant something deep to you?",
+                "What's a boundary you've needed to set that was difficult but necessary?",
+                "What's something about our friendship that you especially value?",
+                "What's a conversation we've never had that might deepen our connection?",
+                "What's something I might not realize you need from me as a friend?",
+                "What's a challenge you're facing that you haven't shared with many people?",
+                "What's a memory between us that you treasure that I might not know meant so much?",
+                "What's something you're quietly celebrating that deserves recognition?",
+                "What's a question you've been asking yourself lately about your life direction?",
+                "What's something from your past that still influences your decisions today?",
+                "What's a fear you're trying to face right now?"
+            ],
+            "date_night": [
+                "What was your first impression when we met today?",
+                "What's something you find attractive in others that most people wouldn't think to mention?",
+                "What's an ideal first date activity you've always wanted to try?",
+                "What makes you feel comfortable when getting to know someone new?",
+                "What's something fun or playful you enjoy that we might do together sometime?",
+                "What's something about yourself that usually takes people a while to notice?",
+                "What's surprised you most about our conversation so far?",
+                "If we could go anywhere for a casual next date, where would you choose?",
+                "Can you describe the last time you got turned on in public?",
+                "What's something you're curious to know about me but haven't asked yet?",
+                "What moment from today/our first meeting stood out to you?",
+                "What's a small detail about me that you noticed but I might not realize?",
+                "What's something we seem to have in common that you didn't expect?",
+                "What do you look for in the early stages of dating that tells you it's worth pursuing?",
+                "What's a question you wish more people asked you when getting to know you?",
+                "What's a first impression people often have about you that isn't quite accurate?",
+                "What's been your most memorable first date experience (before ours, of course)?",
+                "What's a dating experience that taught you something important about yourself?",
+                "What's something you hope people see in you when they first get to know you?",
+                "What do you look like, and sound like, when a date is going well for you?",
+                "What's something from our conversation that you found yourself thinking about after the moment has passed?",
+                "What's a side of yourself you've shown me that you rarely show others?",
+                "What's something you're passionate about that you'd love to share with someone you're dating?",
+                "What's a dating 'rule' you think is overrated or doesn't work for you?",
+                "What's a simple activity you enjoy that we might share together sometime?"
+            ],
+            "lovers": [
+                "What's something adventurous or exciting you'd like to try with me but haven't yet?",
+                "What small gesture of affection means the most to you that I might not realize?",
+                "When do you feel most connected to me beyond just physical moments?",
+                "What's a way I could surprise you that would make you feel truly special?",
+                "What's something about me that still gives you butterflies?",
+                "If we could create a perfect evening just for us, what would it include?",
+                "What kind of touch makes you feel most cherished and desired?",
+                "What's something you've always wanted to experience together that we haven't discussed?",
+                "What memory of us makes you smile when you're alone?",
+                "What unspoken desire have you been hoping I might intuitively understand?",
+                "What's a moment between us where time seemed to stand still?",
+                "What's something you'd like me to whisper in your ear when we're alone?",
+                "Do you prefer sending dirty texts or talking dirty in person?",
+                "What's a subtle shift in our relationship that profoundly impacted your feelings?",
+                "What's something I do that makes you feel deeply understood?",
+                "What's a look or expression of mine that communicates something powerful to you?",
+                "What's a fear about us that sometimes whispers in your quieter moments?",
+                "If we could role-play any scenario together, what would you choose?",
+                "What's a quality in me that you've come to appreciate more deeply over time?",
+                "What's a way we connect that feels unique to our relationship?",
+                "If we could try something new in the bedroom tonight, what would you want it to be?",
+                "What's a moment you knew we had something special worth protecting?",
+                "What words or phrases would you love to hear me say during our most passionate moments?",
+                "Does the idea of partner-swapping make you feel jealous, turned on, or both?",
+                "What's something sacred about our connection that you never want to lose?"
+            ]
+        };
+
+        const ANIMATION_SPEED = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--animation-speed').trim()) || 0.6;
+        const CARD_VISIBLE_THICKNESS = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--card-visible-thickness').trim());
+        const STACK_MAX_RANDOM_X_OFFSET = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stack-max-random-x-offset').trim());
+        const STACK_MAX_RANDOM_Y_OFFSET = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stack-max-random-y-offset').trim());
+        const STACK_MAX_RANDOM_ROTATION = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stack-max-random-rotation').trim());
+
+        const LS_STATE_KEY = 'mysticConversationState_v8'; // Incremented version
+        const LS_CUSTOM_SETS_KEY = 'mysticConversation_customSets_v2'; // Incremented version
+
+        const cardArea = document.querySelector('.card-area');
+        const deckPileEl = document.querySelector('.deck-pile');
+        const discardPileEl = document.querySelector('.discard-pile');
+        const nextBtn = document.getElementById('next-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const shuffleBtn = document.getElementById('shuffle-btn');
+        const questionSetSelect = document.getElementById('question-set-select');
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const aiSidebarWrapper = document.getElementById('ai-sidebar-wrapper');
+
+
+        let cardElements = [];
+        let currentQuestions = [];
+        let deckIndices = [];
+        let discardIndices = [];
+        let currentSetKey = 'strangers';
+
+
+        // --- Sidebar Toggle ---
+        hamburgerBtn.addEventListener('click', () => {
+            aiSidebarWrapper.classList.toggle('open');
+            // Optional: toggle a class on body or app-container if you want to push content
+            // document.body.classList.toggle('sidebar-open'); 
+        });
+
+
+        // --- Custom Set Management ---
+        function addCustomSetToDropdown(setKey, setName) {
+            if (questionSetSelect.querySelector(`option[value="${setKey}"]`)) {
+                return;
+            }
+            const option = document.createElement('option');
+            option.value = setKey;
+            option.textContent = `${setName} (Custom)`;
+            option.dataset.custom = "true";
+            questionSetSelect.appendChild(option);
+        }
+
+        function loadCustomSets() {
+            try {
+                const storedCustomSets = localStorage.getItem(LS_CUSTOM_SETS_KEY);
+                if (storedCustomSets) {
+                    const parsedCustomSets = JSON.parse(storedCustomSets);
+                    Object.assign(questionSets, parsedCustomSets);
+
+                    for (const key in parsedCustomSets) {
+                        if (key.startsWith("custom_") && questionSets[key]) {
+                            let setName = key.substring(7).replace(/_/g, ' ');
+                            setName = setName.replace(/\b\w/g, l => l.toUpperCase());
+                            addCustomSetToDropdown(key, setName);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading custom sets:", e);
+            }
+        }
+
+        function saveCustomSets() {
+            const customSetsToSave = {};
+            for (const key in questionSets) {
+                if (key.startsWith("custom_")) {
+                    customSetsToSave[key] = questionSets[key];
+                }
+            }
+            try {
+                localStorage.setItem(LS_CUSTOM_SETS_KEY, JSON.stringify(customSetsToSave));
+            } catch (e) {
+                console.error("Error saving custom sets:", e);
+            }
+        }
+
+        // --- State Management ---
+        function loadState() {
+            let savedState = { selectedSet: 'strangers', discardState: {} };
+            try {
+                const storedData = localStorage.getItem(LS_STATE_KEY);
+                if (storedData) {
+                    const parsedData = JSON.parse(storedData);
+                    if (parsedData && typeof parsedData.selectedSet === 'string' && typeof parsedData.discardState === 'object') {
+                        if (questionSets[parsedData.selectedSet]) {
+                            savedState.selectedSet = parsedData.selectedSet;
+                        } else {
+                            savedState.selectedSet = 'strangers';
+                        }
+                        if (typeof parsedData.discardState === 'object' && parsedData.discardState !== null) {
+                            for (const key in parsedData.discardState) {
+                                if (Array.isArray(parsedData.discardState[key])) {
+                                    savedState.discardState[key] = parsedData.discardState[key].filter(Number.isInteger);
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (error) { console.error("Failed to parse localStorage data:", error); }
+            return savedState;
+        }
+
+        function saveState() {
+            const stateToSave = { selectedSet: currentSetKey, discardState: {} };
+            let fullDiscardState = {};
+            try {
+                const existingStateData = localStorage.getItem(LS_STATE_KEY);
+                if (existingStateData) {
+                    const existingState = JSON.parse(existingStateData);
+                    if (existingState && typeof existingState.discardState === 'object' && existingState.discardState !== null) {
+                        fullDiscardState = existingState.discardState;
+                    }
+                }
+            } catch (e) { /* Ignore parsing error for old data */ }
+
+            fullDiscardState[currentSetKey] = [...discardIndices];
+            stateToSave.discardState = fullDiscardState;
+
+            try {
+                localStorage.setItem(LS_STATE_KEY, JSON.stringify(stateToSave));
+            } catch (error) { console.error("Failed to save state to localStorage:", error); }
+
+            saveCustomSets();
+        }
+
+
+        // --- Card Logic & Animations ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function createCardElement(question, index, styleIndex = 0) {
+            const card = document.createElement('div');
+            card.classList.add('card');
+            card.dataset.index = index;
+
+            const cardBack = document.createElement('div');
+            cardBack.classList.add('card-face', 'card-back', `card-style-${styleIndex}`);
+
+            const cardFront = document.createElement('div');
+            cardFront.classList.add('card-face', 'card-front');
+            cardFront.textContent = question;
+
+            card.appendChild(cardBack);
+            card.appendChild(cardFront);
+            return card;
+        }
+
+        function getPilePositions() {
+            if (!cardArea || !deckPileEl || !discardPileEl) {
+                return { deckX: 0, deckY: 0, discardX: 0, discardY: 0 };
+            }
+            const areaRect = cardArea.getBoundingClientRect();
+            const deckRect = deckPileEl.getBoundingClientRect();
+            const discardRect = discardPileEl.getBoundingClientRect();
+            const cardWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--card-width'));
+
+            const deckPileX = (areaRect.width / 2) - (cardWidth / 2);
+            const deckPileY = deckRect.top - areaRect.top;
+            const discardPileX = (areaRect.width / 2) - (cardWidth / 2);
+            const discardPileY = discardRect.top - areaRect.top;
+
+            return { deckX: deckPileX, deckY: deckPileY, discardX: discardPileX, discardY: discardPileY };
+        }
+
+        function positionCards(animate = false) {
+            if (cardElements.length === 0) return;
+            const { deckX, deckY, discardX, discardY } = getPilePositions();
+            const numDeckCards = deckIndices.length;
+            const deckCenterIndexOffset = (numDeckCards - 1) / 2;
+
+            deckIndices.forEach((cardIndex, i) => {
+                const card = cardElements[cardIndex];
+                if (!card) return;
+
+                const randomX = (Math.random() * 2 - 1) * STACK_MAX_RANDOM_X_OFFSET;
+                const stackingYOffset = (i - deckCenterIndexOffset) * CARD_VISIBLE_THICKNESS;
+                const randomYJitter = (Math.random() * 2 - 1) * STACK_MAX_RANDOM_Y_OFFSET;
+                const finalY = deckY + stackingYOffset + randomYJitter;
+                const randomRot = (Math.random() * 2 - 1) * STACK_MAX_RANDOM_ROTATION;
+
+                gsap.to(card, {
+                    x: deckX + randomX, y: finalY, rotationY: 0, rotationZ: randomRot,
+                    zIndex: i + 2, duration: animate ? ANIMATION_SPEED / 1.5 : 0, ease: 'power2.out'
+                });
+            });
+
+            const numDiscardCards = discardIndices.length;
+            const discardCenterIndexOffset = (numDiscardCards - 1) / 2;
+            const discardMaxRandomXOffset = STACK_MAX_RANDOM_X_OFFSET * 0.8;
+            const discardMaxRandomYOffset = STACK_MAX_RANDOM_Y_OFFSET * 0.8;
+            const discardMaxRandomRotation = STACK_MAX_RANDOM_ROTATION * 0.8;
+
+            discardIndices.forEach((cardIndex, i) => {
+                const card = cardElements[cardIndex];
+                if (!card) return;
+
+                const randomX = (Math.random() * 2 - 1) * discardMaxRandomXOffset;
+                const stackingYOffset = (i - discardCenterIndexOffset) * CARD_VISIBLE_THICKNESS;
+                const randomYJitter = (Math.random() * 2 - 1) * discardMaxRandomYOffset;
+                const finalY = discardY + stackingYOffset + randomYJitter;
+                const randomRot = (Math.random() * 2 - 1) * discardMaxRandomRotation;
+
+                gsap.to(card, {
+                    x: discardX + randomX, y: finalY, rotationY: 180, rotationZ: randomRot,
+                    zIndex: i + 2, duration: animate ? ANIMATION_SPEED / 2 : 0, ease: 'power2.out'
+                });
+            });
+        }
+        function updateButtonStates() {
+            nextBtn.disabled = deckIndices.length === 0;
+            prevBtn.disabled = discardIndices.length === 0;
+            shuffleBtn.disabled = deckIndices.length <= 1;
+        }
+
+        function flipNextCard() {
+            if (deckIndices.length === 0 || !cardElements.length) return;
+            nextBtn.disabled = true; prevBtn.disabled = true; shuffleBtn.disabled = true;
+
+            const cardIndexToFlip = deckIndices.pop();
+            const cardElement = cardElements[cardIndexToFlip];
+            if (!cardElement) { updateButtonStates(); return; }
+            gsap.killTweensOf(cardElement);
+            discardIndices.push(cardIndexToFlip);
+            saveState();
+
+            const { discardX, discardY } = getPilePositions();
+            const cardWidth = cardElement.offsetWidth; const cardHeight = cardElement.offsetHeight;
+            const liftX = (cardArea.offsetWidth / 2) - (cardWidth / 2);
+            const deckPileRect = deckPileEl.getBoundingClientRect();
+            const cardAreaRect = cardArea.getBoundingClientRect();
+            const liftY = (deckPileRect.top - cardAreaRect.top) - cardHeight * 0.3;
+
+            const numDiscardCards = discardIndices.length;
+            const newCardStackIndexInDiscard = numDiscardCards - 1;
+            const discardCenterIndexOffset = (numDiscardCards - 1) / 2;
+            const discardTargetMaxRandomXOffset = STACK_MAX_RANDOM_X_OFFSET * 0.8;
+            const discardTargetMaxRandomYOffset = STACK_MAX_RANDOM_Y_OFFSET * 0.8;
+            const discardTargetMaxRandomRotation = STACK_MAX_RANDOM_ROTATION * 0.8;
+
+            const targetStackingYOffset = (newCardStackIndexInDiscard - discardCenterIndexOffset) * CARD_VISIBLE_THICKNESS;
+            const targetRandomYJitter = (Math.random() * 2 - 1) * discardTargetMaxRandomYOffset;
+            const targetY = discardY + targetStackingYOffset + targetRandomYJitter;
+            const targetRandomX = (Math.random() * 2 - 1) * discardTargetMaxRandomXOffset;
+            const targetX = discardX + targetRandomX;
+            const targetRotationZ = (Math.random() * 2 - 1) * discardTargetMaxRandomRotation;
+
+            gsap.set(cardElement, { zIndex: 200 + (currentQuestions ? currentQuestions.length : 0) });
+            const tl = gsap.timeline({
+                onComplete: () => {
+                    gsap.to(cardElement, { rotationZ: targetRotationZ, zIndex: newCardStackIndexInDiscard + 2, duration: 0.2, ease: 'power1.out' });
+                    updateButtonStates();
+                }
+            });
+            tl.to(cardElement, { x: liftX, y: liftY, rotationZ: 0, duration: ANIMATION_SPEED / 2.2, ease: 'circ.out' })
+                .to(cardElement, { rotationY: 180, duration: ANIMATION_SPEED / 1.7, ease: 'back.inOut(1.4)' }, `-=${ANIMATION_SPEED / 4.5}`)
+                .to(cardElement, { x: targetX, y: targetY, duration: ANIMATION_SPEED / 2.2, ease: 'circ.in' }, `-=${ANIMATION_SPEED / 3.2}`);
+        }
+
+        function flipPreviousCard() {
+            if (discardIndices.length === 0 || !cardElements.length) return;
+            prevBtn.disabled = true; nextBtn.disabled = true; shuffleBtn.disabled = true;
+
+            const cardIndexToReturn = discardIndices.pop();
+            const cardElement = cardElements[cardIndexToReturn];
+            if (!cardElement) { updateButtonStates(); return; }
+            gsap.killTweensOf(cardElement);
+            deckIndices.push(cardIndexToReturn);
+            saveState();
+
+            const { deckX, deckY } = getPilePositions();
+            const cardWidth = cardElement.offsetWidth; const cardHeight = cardElement.offsetHeight;
+            const liftX = (cardArea.offsetWidth / 2) - (cardWidth / 2);
+            const discardPileRect = discardPileEl.getBoundingClientRect();
+            const cardAreaRect = cardArea.getBoundingClientRect();
+            const liftY = (discardPileRect.top - cardAreaRect.top) - cardHeight * 0.3;
+
+            const numDeckCards = deckIndices.length;
+            const newCardStackIndexInDeck = numDeckCards - 1;
+            const deckCenterIndexOffset = (numDeckCards - 1) / 2;
+            const targetStackingYOffset = (newCardStackIndexInDeck - deckCenterIndexOffset) * CARD_VISIBLE_THICKNESS;
+            const targetRandomYJitter = (Math.random() * 2 - 1) * STACK_MAX_RANDOM_Y_OFFSET;
+            const targetY = deckY + targetStackingYOffset + targetRandomYJitter;
+            const targetRandomX = (Math.random() * 2 - 1) * STACK_MAX_RANDOM_X_OFFSET;
+            const targetX = deckX + targetRandomX;
+            const targetRotationZ = (Math.random() * 2 - 1) * STACK_MAX_RANDOM_ROTATION;
+
+            gsap.set(cardElement, { zIndex: 200 + (currentQuestions ? currentQuestions.length : 0) });
+            const tl = gsap.timeline({
+                onComplete: () => {
+                    gsap.to(cardElement, { zIndex: newCardStackIndexInDeck + 2, duration: 0.2, ease: 'power1.out' });
+                    updateButtonStates();
+                }
+            });
+            tl.to(cardElement, { x: liftX, y: liftY, rotationZ: 0, duration: ANIMATION_SPEED / 2.2, ease: 'circ.out' })
+                .to(cardElement, { rotationY: 0, duration: ANIMATION_SPEED / 1.7, ease: 'back.inOut(1.4)' }, `-=${ANIMATION_SPEED / 4.5}`)
+                .to(cardElement, { x: targetX, y: targetY, rotationZ: targetRotationZ, duration: ANIMATION_SPEED / 2.2, ease: 'circ.in' }, `-=${ANIMATION_SPEED / 3.2}`);
+        }
+
+        function shuffleRemainingDeck() {
+            if (deckIndices.length <= 1) return;
+            shuffleBtn.disabled = true; nextBtn.disabled = true; prevBtn.disabled = true;
+            deckIndices.forEach(cardIndex => { const card = cardElements[cardIndex]; if (card) gsap.killTweensOf(card); });
+            shuffleArray(deckIndices);
+            if (!deckPileEl || !cardArea || cardElements.length === 0) { updateButtonStates(); return; }
+            const { deckX, deckY } = getPilePositions();
+            const tl = gsap.timeline({ onComplete: () => { positionCards(true); updateButtonStates(); } });
+            deckIndices.forEach((cardIndex, i) => {
+                const card = cardElements[cardIndex]; if (!card) return;
+                tl.to(card, {
+                    x: deckX + (Math.random() * 70 - 35), y: deckY - card.offsetHeight * 0.25 + (Math.random() * 50 - 25),
+                    rotationZ: Math.random() * 40 - 20, zIndex: 100 + i, duration: ANIMATION_SPEED / 2.2, ease: 'circ.out'
+                }, i * 0.018);
+            });
+        }
+
+        function initialize(targetSetKey, initialDiscardStateForSets) {
+            currentSetKey = targetSetKey;
+            applyTheme(currentSetKey.startsWith("custom_") ? 'strangers' : currentSetKey); // Apply base theme or specific one
+            currentQuestions = questionSets[currentSetKey] || [];
+
+            cardArea.querySelectorAll('.card').forEach(card => { gsap.killTweensOf(card); card.remove(); });
+            cardElements = [];
+
+            const savedDiscardForThisSet = (initialDiscardStateForSets[currentSetKey] || []).filter(idx => Number.isInteger(idx) && idx >= 0 && idx < currentQuestions.length);
+            discardIndices = [...new Set(savedDiscardForThisSet)];
+            const allPossibleIndices = currentQuestions.map((_, i) => i);
+            deckIndices = allPossibleIndices.filter(index => !discardIndices.includes(index));
+
+            const themeKey = currentSetKey.startsWith("custom_") ? 'strangers' : currentSetKey;
+            const themeStyleIndex = themes[themeKey].styleIndex || 0;
+
+            currentQuestions.forEach((q, index) => {
+                const cardElement = createCardElement(q, index, themeStyleIndex);
+                cardArea.appendChild(cardElement);
+                cardElements.push(cardElement);
+            });
+            shuffleArray(deckIndices);
+            requestAnimationFrame(() => { setTimeout(() => { positionCards(false); updateButtonStates(); }, 50); });
+        }
+
+
+        // --- Event Listeners & Initialization ---
+        questionSetSelect.addEventListener('change', (event) => {
+            const selectedSetKey = event.target.value;
+            const allDiscardStates = loadState().discardState;
+            initialize(selectedSetKey, allDiscardStates);
+            saveState();
+        });
+
+        nextBtn.addEventListener('click', flipNextCard);
+        prevBtn.addEventListener('click', flipPreviousCard);
+        shuffleBtn.addEventListener('click', shuffleRemainingDeck);
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCustomSets();
+            const savedState = loadState();
+            let initialSetKey = savedState.selectedSet || 'strangers';
+            if (!questionSets[initialSetKey]) { initialSetKey = 'strangers'; }
+            questionSetSelect.value = initialSetKey;
+            initialize(initialSetKey, savedState.discardState);
+        });
+
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => { if (cardElements.length > 0) { positionCards(false); } }, 150);
+        });
+
+
+        // --- AI Card Generation Sidebar Logic ---
+        const apiKeyInput = document.getElementById('openai-api-key');
+        const cardSpecsInput = document.getElementById('card-specs');
+        const generateCardsBtn = document.getElementById('generate-cards-btn'); // Changed ID
+        const generatedCardsContainer = document.getElementById('generated-cards-container'); // Changed ID
+        const customSetNameInput = document.getElementById('custom-set-name');
+        const addGeneratedCardsBtn = document.getElementById('add-generated-cards-btn'); // Changed ID
+
+        // let lastGeneratedCardText = null; // Will become an array of textareas or texts
+        let generatedCardTextareas = [];
+
+
+        async function generateOpenAICards(apiKey, promptText) { // Pluralized
+            const API_URL = 'https://api.openai.com/v1/chat/completions';
+            const requestBody = {
+                model: "gpt-5-mini-2025-08-07", // Using a common model, you can change to "gpt-4-mini" or others if available/preferred
+                messages: [{
+                    role: "system",
+                    content: "You are a helpful assistant that generates 5 concise, thought-provoking, and engaging questions for a conversation card game. Each question should be suitable for a single card and encourage deeper connection or interesting discussion. The best conversation starters are open-ended questions of personal relevance which encourage a bit of storytelling. Output ONLY a JSON array of 5 strings, where each string is a question. For example: [\"Question 1?\", \"Question 2?\", \"Question 3?\", \"Question 4?\", \"Question 5?\"]"
+                }, {
+                    role: "user",
+                    content: promptText
+                }],
+                max_completion_tokens: 400, // Adjusted for 5 questions
+                temperature: 1,
+                response_format: { type: "json_object" } // Request JSON output
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+                    body: JSON.stringify(requestBody)
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('OpenAI API Error:', errorData);
+                    throw new Error(`API Error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+                }
+                const data = await response.json();
+                // The API might wrap the JSON array within a key like "questions" or directly in choices[0].message.content
+                // Adjust parsing based on actual API response structure for JSON mode.
+                // Assuming the response directly gives a parsable JSON string in choices[0].message.content
+                if (data.choices && data.choices.length > 0 && data.choices[0].message && data.choices[0].message.content) {
+                    try {
+                        const parsedContent = JSON.parse(data.choices[0].message.content);
+                        // Check if it's an array directly, or if the array is nested under a key (e.g. "questions")
+                        if (Array.isArray(parsedContent)) return parsedContent.slice(0, 5); // Ensure only 5
+                        if (parsedContent.questions && Array.isArray(parsedContent.questions)) return parsedContent.questions.slice(0, 5);
+
+                        // Fallback if JSON is not in expected array format but is some other object
+                        // This part might need adjustment based on how your specific model version formats JSON output
+                        // For now, if it's not an array, we'll try to extract values if it's an object
+                        if (typeof parsedContent === 'object' && parsedContent !== null) {
+                            const questionsArray = Object.values(parsedContent);
+                            if (questionsArray.every(q => typeof q === 'string')) {
+                                return questionsArray.slice(0, 5);
+                            }
+                        }
+                        console.error("OpenAI response content is not a valid JSON array of questions:", parsedContent);
+                        throw new Error("Generated content is not in the expected array format.");
+
+                    } catch (jsonError) {
+                        console.error("Error parsing JSON from OpenAI response:", jsonError, data.choices[0].message.content);
+                        // Fallback: try to split by newline if JSON fails and it's plain text lines
+                        const lines = data.choices[0].message.content.split('\n').map(q => q.trim().replace(/^"|"$/g, '').replace(/^\d+\.\s*/, '')).filter(q => q.length > 0);
+                        if (lines.length >= 5) return lines.slice(0, 5);
+                        throw new Error("Could not parse questions from API response. Expected a JSON array of 5 strings.");
+                    }
+                } else {
+                    console.error("Invalid response structure from OpenAI API:", data);
+                    throw new Error("Invalid response structure from OpenAI API.");
+                }
+            } catch (error) {
+                console.error('Error calling OpenAI API:', error);
+                throw error;
+            }
+        }
+
+
+        async function handleGenerateCards() { // Pluralized
+            const apiKey = apiKeyInput.value.trim();
+            const specifications = cardSpecsInput.value.trim();
+
+            if (!apiKey) {
+                generatedCardsContainer.innerHTML = "<p>Error: Please enter your OpenAI API key.</p>";
+                addGeneratedCardsBtn.disabled = true; return;
+            }
+            if (!specifications) {
+                generatedCardsContainer.innerHTML = "<p>Error: Please enter card specifications/theme.</p>";
+                addGeneratedCardsBtn.disabled = true; return;
+            }
+
+            generateCardsBtn.disabled = true;
+            addGeneratedCardsBtn.disabled = true;
+            generatedCardsContainer.innerHTML = "<p>Generating 5 cards... please wait.</p>";
+            generatedCardTextareas = []; // Clear previous
+
+            const fullPrompt = `Generate 5 concise, thought-provoking questions for a conversation card game based on the theme: "${specifications}". Return as a JSON array of 5 strings.`;
+
+            try {
+                const cardTextsArray = await generateOpenAICards(apiKey, fullPrompt);
+                generatedCardsContainer.innerHTML = ''; // Clear loading message
+
+                if (Array.isArray(cardTextsArray) && cardTextsArray.length > 0) {
+                    cardTextsArray.slice(0, 5).forEach((text, index) => { // Ensure max 5
+                        const itemDiv = document.createElement('div');
+                        itemDiv.classList.add('generated-card-item');
+
+                        const label = document.createElement('label');
+                        label.textContent = `Card ${index + 1}:`;
+                        label.style.display = 'block';
+                        label.style.marginBottom = '3px';
+                        label.style.fontSize = '0.8em';
+
+                        const textarea = document.createElement('textarea');
+                        textarea.classList.add('editable-card-textarea');
+                        textarea.value = text.trim();
+                        textarea.rows = 2; // Small initial size
+
+                        itemDiv.appendChild(label);
+                        itemDiv.appendChild(textarea);
+                        generatedCardsContainer.appendChild(itemDiv);
+                        generatedCardTextareas.push(textarea);
+                    });
+                    addGeneratedCardsBtn.disabled = false;
+                } else {
+                    generatedCardsContainer.innerHTML = "<p>Error: Could not generate cards or received an empty list. Please check console.</p>";
+                }
+            } catch (error) {
+                generatedCardsContainer.innerHTML = `<p>Error generating cards: ${error.message}</p>`;
+            } finally {
+                generateCardsBtn.disabled = false;
+            }
+        }
+
+        function handleAddGeneratedCardsToSet() { // Pluralized
+            if (generatedCardTextareas.length === 0) {
+                alert("Please generate cards first."); return;
+            }
+
+            const editedCardTexts = generatedCardTextareas.map(textarea => textarea.value.trim()).filter(text => text.length > 0);
+
+            if (editedCardTexts.length === 0) {
+                alert("No valid card text to add. Please ensure cards are not empty."); return;
+            }
+
+            const newSetNameRaw = customSetNameInput.value.trim();
+            let targetSetKey = questionSetSelect.value;
+            let targetSetDisplayName;
+
+            if (newSetNameRaw) {
+                const newSetSanitizedName = newSetNameRaw.toLowerCase().replace(/\s+/g, '_').replace(/[^\w-]/g, '');
+                const newSetKey = "custom_" + newSetSanitizedName;
+                targetSetDisplayName = newSetNameRaw;
+
+                if (!questionSets[newSetKey]) {
+                    questionSets[newSetKey] = [];
+                    addCustomSetToDropdown(newSetKey, newSetNameRaw);
+                    alert(`New set "${newSetNameRaw}" created.`);
+                    questionSetSelect.value = newSetKey; // Switch dropdown to new set
+                }
+                targetSetKey = newSetKey;
+                customSetNameInput.value = ''; // Clear input after use
+            } else {
+                // If no new set name, use the currently selected set from the main dropdown
+                const selectedOption = questionSetSelect.options[questionSetSelect.selectedIndex];
+                targetSetDisplayName = selectedOption.text.replace(" (Custom)", "");
+
+                if (!targetSetKey.startsWith("custom_")) {
+                    alert("Cannot add cards to predefined sets. Please enter a name for a new custom set, or select an existing custom set from the main app's 'Choose Arcana' dropdown.");
+                    return;
+                }
+            }
+
+            if (!questionSets[targetSetKey]) { // Should be created if new, but as a fallback
+                questionSets[targetSetKey] = [];
+            }
+
+            editedCardTexts.forEach(text => questionSets[targetSetKey].push(text));
+
+            generatedCardsContainer.innerHTML = `<p>Added ${editedCardTexts.length} card(s) to set: "${targetSetDisplayName}". Generate more or close sidebar.</p>`;
+            generatedCardTextareas = [];
+            addGeneratedCardsBtn.disabled = true;
+
+            if (currentSetKey === targetSetKey) { // If currently viewed set is modified
+                const allDiscardStates = loadState().discardState;
+                initialize(currentSetKey, allDiscardStates); // Re-initialize to show new cards in deck
+            }
+            saveState(); // Saves discard states and custom sets
+        }
+
+        if (generateCardsBtn) {
+            generateCardsBtn.addEventListener('click', handleGenerateCards);
+        }
+        if (addGeneratedCardsBtn) {
+            addGeneratedCardsBtn.addEventListener('click', handleAddGeneratedCardsToSet);
+        }
+
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
+</body>
+
+</html>
