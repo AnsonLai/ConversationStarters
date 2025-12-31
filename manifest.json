@@ -1,6 +1,6 @@
 {
   "name": "Mystic Conversation Cards",
-  "short_name": "MysticCards",
+  "short_name": "Mystic Cards",
   "description": "Spark conversations with intriguing questions.",
   "start_url": "index.html",
   "display": "standalone",
